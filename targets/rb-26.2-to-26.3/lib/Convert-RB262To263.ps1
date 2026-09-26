@@ -29,10 +29,11 @@ function Write-JsonFile([string]$Path, $Value) {
 function Update-TextVersionMarkers([string]$Path, [string]$NeoVersion) {
     $text = Get-Content -LiteralPath $Path -Raw
     $normalizedNeoVersion = $NeoVersion -replace '^neoforge-', ''
-    $updated = $text -replace '(?im)(minecraft[_\.-]version\s*[=:]\s*["'']?)26\.2(["'']?)', '$126.3$2'
-    $updated = $updated -replace '(?im)(neo[_\.-]version\s*[=:]\s*["'']?)26\.2(?:\.\d+)?(?:-[^"''\s]+)?(["'']?)', ('$1' + $normalizedNeoVersion + '$2')
-    $updated = $updated -replace '(?im)(versionRange\s*=\s*["''])\[26\.2[^\)]*\)', ('$1[' + $normalizedNeoVersion + ',)')
-    $updated = $updated -replace '(?im)(versionRange\s*=\s*["''])\[26\.2\](["''])', '$1[26.3]$2'
+    $updated = [regex]::Replace($text, '(?im)(minecraft[_\.-]version\s*[=:]\s*["'']?)26\.2(["'']?)', { param($m) $m.Groups[1].Value + '26.3' + $m.Groups[2].Value })
+    $updated = [regex]::Replace($updated, '(?im)(neo[_\.-]version\s*[=:]\s*["'']?)26\.2(?:\.\d+)*(?:-[^"''\s]+)?(["'']?)', { param($m) $m.Groups[1].Value + $normalizedNeoVersion + $m.Groups[2].Value })
+    $updated = [regex]::Replace($updated, '(?im)(minecraft_version_range\s*[=:]\s*["'']?)\[26\.2\](["'']?)', { param($m) $m.Groups[1].Value + '[26.3]' + $m.Groups[2].Value })
+    $updated = [regex]::Replace($updated, '(?im)(versionRange\s*=\s*["''])\[26\.2[^\)]*\)', { param($m) $m.Groups[1].Value + '[' + $normalizedNeoVersion + ',)' })
+    $updated = [regex]::Replace($updated, '(?im)(versionRange\s*=\s*["''])\[26\.2\](["''])', { param($m) $m.Groups[1].Value + '[26.3]' + $m.Groups[2].Value })
     if ($updated -ne $text) { Set-Content -LiteralPath $Path -Value $updated -Encoding UTF8; return $true }
     return $false
 }
@@ -76,13 +77,15 @@ function Invoke-RB262To263 {
     $temporaryInput = $null
     if (Test-Path -LiteralPath $resolvedInput -PathType Leaf) {
         if ([IO.Path]::GetExtension($resolvedInput) -ne '.jar') { throw 'Input file must be a .jar, or provide a project folder.' }
-        $temporaryInput = Join-Path ([IO.Path]::GetTempPath()) ('rb262263-jar-' + [guid]::NewGuid().ToString('N'))
-        New-Item -ItemType Directory -Path $temporaryInput -Force | Out-Null
-        $archivePath = Join-Path ([IO.Path]::GetTempPath()) ('rb262263-jar-' + [guid]::NewGuid().ToString('N') + '.zip')
-        Copy-Item -LiteralPath $resolvedInput -Destination $archivePath -Force
-        try { Expand-Archive -LiteralPath $archivePath -DestinationPath $temporaryInput -Force }
-        finally { Remove-Item -LiteralPath $archivePath -Force -ErrorAction SilentlyContinue }
-        $inputFull = $temporaryInput
+        $legacyRoot = Join-Path ([IO.Path]::GetTempPath()) ('rb262263-legacy-' + [guid]::NewGuid().ToString('N'))
+        $decompiled = Join-Path $legacyRoot 'decompiled'
+        New-Item -ItemType Directory -Path $legacyRoot -Force | Out-Null
+        $legacyScript = Join-Path (Split-Path -Parent $PSScriptRoot) 'legacy-pipeline\Convert-JarToProject.ps1'
+        if (-not (Test-Path -LiteralPath $legacyScript)) { throw "Missing legacy JAR pipeline: $legacyScript" }
+        & $legacyScript -JarPath $resolvedInput -OutputPath $decompiled -ContinueToNeoForge262 -NeoVersion '26.2.0.72' -MinecraftVersion '26.2' | Out-Null
+        $inputFull = $decompiled + '-26.2'
+        if (-not (Test-Path -LiteralPath $inputFull -PathType Container)) { throw "Legacy JAR pipeline did not produce a 26.2 scaffold: $inputFull" }
+        $temporaryInput = $legacyRoot
     } else { $inputFull = $resolvedInput }
     $targetRoot = Split-Path -Parent $PSScriptRoot
     $knowledgePath = Join-Path $targetRoot 'knowledge\PrimerChangeIndex-26.2-to-26.3.json'

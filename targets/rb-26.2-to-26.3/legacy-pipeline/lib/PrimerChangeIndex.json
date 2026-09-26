@@ -1,0 +1,392 @@
+﻿{
+    "schemaVersion":  2,
+    "target":  "26.2",
+    "attribution":  "NeoForged migration primers by their respective authors; summaries are original condensed index text with links to the licensed source.",
+    "transitions":  [
+                        {
+                            "from":  "1.20.1",
+                            "to":  "1.20.4",
+                            "sourceType":  "converter-bridge",
+                            "officialPrimer":  null,
+                            "changes":  [
+                                            "Forge to NeoForge package and loader metadata migration",
+                                            "NeoForge event bus and registry bootstrap",
+                                            "Forge 1.20.1 SRG-to-official name cleanup"
+                                        ],
+                            "detect":  [
+                                           "net.minecraftforge.",
+                                           "mods.toml",
+                                           "m_\\d+_|f_\\d+_"
+                                       ],
+                            "passes":  [
+                                           "srg-1.20.1",
+                                           "mechanical-java",
+                                           "mod-entry",
+                                           "event-bus"
+                                       ],
+                            "rules":  [
+
+                                      ]
+                        },
+                        {
+                            "from":  "1.20.4",
+                            "to":  "1.20.5",
+                            "sourceType":  "official-primer",
+                            "officialPrimer":  "https://docs.neoforged.net/primer/docs/1.20.5/",
+                            "changes":  [
+                                            "Java 21 toolchain",
+                                            "ItemStack data components replace item NBT patterns",
+                                            "Stream codecs and registry-aware serialization",
+                                            "Recipes, attributes, entities, and resource/data pack changes",
+                                            "NeoForge attachment, capability, networking, and registration changes"
+                                        ],
+                            "detect":  [
+                                           "CompoundTag",
+                                           "getOrCreateTag",
+                                           "FriendlyByteBuf",
+                                           "ForgeCapabilities"
+                                       ],
+                            "passes":  [
+                                           "neoforge-26-api"
+                                       ],
+                            "rules":  [
+
+                                      ]
+                        },
+                        {
+                            "from":  "1.20.5",
+                            "to":  "1.20.6",
+                            "sourceType":  "official-primer",
+                            "officialPrimer":  "https://docs.neoforged.net/primer/docs/1.20.6/",
+                            "changes":  [
+                                            "Minor vanilla additions, signature changes, and removals"
+                                        ],
+                            "detect":  [
+
+                                       ],
+                            "passes":  [
+
+                                       ],
+                            "rules":  [
+
+                                      ]
+                        },
+                        {
+                            "from":  "1.20.6",
+                            "to":  "1.21",
+                            "sourceType":  "official-primer",
+                            "officialPrimer":  "https://docs.neoforged.net/primer/docs/1.21/",
+                            "changes":  [
+                                            "Data-driven enchantments and expanded data components",
+                                            "Recipe, ingredient, entity, attribute, and tag changes",
+                                            "Resource and data pack format migrations",
+                                            "NeoForge payload registration, capabilities, attachments, and event changes"
+                                        ],
+                            "detect":  [
+                                           "SimpleChannel",
+                                           "RegisterPayloadHandlersEvent",
+                                           "Ingredient",
+                                           "Enchantment"
+                                       ],
+                            "passes":  [
+                                           "neoforge-26-api"
+                                       ],
+                            "rules":  [
+
+                                      ]
+                        },
+                        {
+                            "from":  "1.21",
+                            "to":  "1.21.1",
+                            "sourceType":  "official-primer",
+                            "officialPrimer":  "https://docs.neoforged.net/primer/docs/1.21.1/",
+                            "changes":  [
+                                            "Minor vanilla API additions and removals"
+                                        ],
+                            "detect":  [
+
+                                       ],
+                            "passes":  [
+
+                                       ],
+                            "rules":  [
+
+                                      ]
+                        },
+                        {
+                            "from":  "1.21.1",
+                            "to":  "1.21.2/3",
+                            "sourceType":  "official-primer",
+                            "officialPrimer":  "https://docs.neoforged.net/primer/docs/1.21.2/",
+                            "changes":  [
+                                            "Entity and item rendering state migrations",
+                                            "Equipment, data component, recipe, and registry changes",
+                                            "Client input, GUI, networking, and NeoForge API updates"
+                                        ],
+                            "detect":  [
+                                           "EntityRenderer",
+                                           "BlockEntityRenderer",
+                                           "ItemRenderer",
+                                           "DataComponents",
+                                           "RegisterPayloadHandlersEvent"
+                                       ],
+                            "passes":  [
+                                           "neoforge-26-api"
+                                       ],
+                            "rules":  [
+                                          "entity-render-state",
+                                          "block-entity-render-state"
+                                      ]
+                        },
+                        {
+                            "from":  "1.21.2/3",
+                            "to":  "1.21.4",
+                            "sourceType":  "official-primer",
+                            "officialPrimer":  "https://docs.neoforged.net/primer/docs/1.21.4/",
+                            "changes":  [
+                                            "Client item definitions replace legacy item model overrides",
+                                            "Item tint, conditional, select, range, composite, and special models",
+                                            "Particles move through render types",
+                                            "Resource reload metadata serializers move toward codecs"
+                                        ],
+                            "detect":  [
+                                           "ItemOverrides",
+                                           "ModelResourceLocation",
+                                           "ParticleRenderType",
+                                           "MetadataSectionSerializer"
+                                       ],
+                            "passes":  [
+                                           "assets"
+                                       ],
+                            "rules":  [
+                                          "standalone-model-keys"
+                                      ]
+                        },
+                        {
+                            "from":  "1.21.4",
+                            "to":  "1.21.5",
+                            "sourceType":  "official-primer",
+                            "officialPrimer":  "https://docs.neoforged.net/primer/docs/1.21.5/",
+                            "changes":  [
+                                            "Block and item model pipeline rewrite",
+                                            "Baked models become quad collections/block-state model parts",
+                                            "Codec-driven reload, timer, and registry context changes",
+                                            "Game test, JOML interface, tag, and mob-effect changes"
+                                        ],
+                            "detect":  [
+                                           "BakedModel",
+                                           "BlockModel",
+                                           "ModelBaker",
+                                           "TimerCallbacks"
+                                       ],
+                            "passes":  [
+                                           "neoforge-26-api",
+                                           "assets"
+                                       ],
+                            "rules":  [
+                                          "baked-model-to-block-state-model",
+                                          "legacy-direction-property",
+                                          "armor-tool-item-components",
+                                          "removed-block-lifecycle"
+                                      ]
+                        },
+                        {
+                            "from":  "1.21.5",
+                            "to":  "1.21.6",
+                            "sourceType":  "official-primer",
+                            "officialPrimer":  "https://docs.neoforged.net/primer/docs/1.21.6/",
+                            "changes":  [
+                                            "GUI prepare/extract/render separation and ordered elements",
+                                            "Dialog, waypoint, and custom action APIs",
+                                            "Blaze3D buffers, uniforms, fog, and scissoring changes",
+                                            "Direct NBT access replaced by generic encode/decode flows",
+                                            "Tag providers and server-player APIs change"
+                                        ],
+                            "detect":  [
+                                           "GuiGraphics",
+                                           "renderBg",
+                                           "renderLabels",
+                                           "CompoundTag",
+                                           "TagAppender",
+                                           "ExistingFileHelper"
+                                       ],
+                            "passes":  [
+                                           "mcreator-1.21.x",
+                                           "neoforge-26-api"
+                                       ],
+                            "rules":  [
+                                          "block-entity-value-io",
+                                          "legacy-datagen-isolation"
+                                      ]
+                        },
+                        {
+                            "from":  "1.21.6",
+                            "to":  "1.21.7",
+                            "sourceType":  "official-primer",
+                            "officialPrimer":  "https://docs.neoforged.net/primer/docs/1.21.7/",
+                            "changes":  [
+                                            "Minor vanilla additions, signature changes, and removals"
+                                        ],
+                            "detect":  [
+
+                                       ],
+                            "passes":  [
+
+                                       ],
+                            "rules":  [
+
+                                      ]
+                        },
+                        {
+                            "from":  "1.21.7",
+                            "to":  "1.21.8",
+                            "sourceType":  "official-primer",
+                            "officialPrimer":  "https://docs.neoforged.net/primer/docs/1.21.8/",
+                            "changes":  [
+                                            "Minor vanilla additions, signature changes, and removals"
+                                        ],
+                            "detect":  [
+
+                                       ],
+                            "passes":  [
+
+                                       ],
+                            "rules":  [
+
+                                      ]
+                        },
+                        {
+                            "from":  "1.21.8",
+                            "to":  "1.21.9",
+                            "sourceType":  "official-primer",
+                            "officialPrimer":  "https://docs.neoforged.net/primer/docs/1.21.9/",
+                            "changes":  [
+                                            "Debug subscriptions and synchronizers",
+                                            "Level.isClientSide field becomes private; use the method",
+                                            "ContainerUser replaces Player in container lifecycle APIs",
+                                            "Profile/name-id, GUI, world, and tag changes"
+                                        ],
+                            "detect":  [
+                                           ".isClientSide",
+                                           "startOpen",
+                                           "stopOpen",
+                                           "GameProfile"
+                                       ],
+                            "passes":  [
+                                           "neoforge-26-api",
+                                           "mcreator-1.21.x"
+                                       ],
+                            "rules":  [
+                                          "texture-sheet-to-single-quad"
+                                      ]
+                        },
+                        {
+                            "from":  "1.21.9",
+                            "to":  "1.21.10",
+                            "sourceType":  "official-primer",
+                            "officialPrimer":  "https://docs.neoforged.net/primer/docs/1.21.10/",
+                            "changes":  [
+                                            "Minor vanilla additions, signature changes, and removals"
+                                        ],
+                            "detect":  [
+
+                                       ],
+                            "passes":  [
+
+                                       ],
+                            "rules":  [
+
+                                      ]
+                        },
+                        {
+                            "from":  "1.21.10",
+                            "to":  "1.21.11",
+                            "sourceType":  "official-primer",
+                            "officialPrimer":  "https://docs.neoforged.net/primer/docs/1.21.11/",
+                            "changes":  [
+                                            "Permission and permission-set overhaul",
+                                            "New combat/use data components",
+                                            "Environment attributes and timelines",
+                                            "Game rule key/value rewrite",
+                                            "Text collectors, slot sources, annotations, and tags"
+                                        ],
+                            "detect":  [
+                                           "hasPermissions",
+                                           "GameRules.RULE_",
+                                           "GameRules.BooleanValue",
+                                           "CommandSourceStack"
+                                       ],
+                            "passes":  [
+                                           "neoforge-26-api"
+                                       ],
+                            "rules":  [
+                                          "game-rules-rewrite"
+                                      ]
+                        },
+                        {
+                            "from":  "1.21.11",
+                            "to":  "26.1",
+                            "sourceType":  "official-primer",
+                            "officialPrimer":  "https://docs.neoforged.net/primer/docs/26.1/",
+                            "changes":  [
+                                            "Java 25 and deobfuscated vanilla",
+                                            "Loot codecs and validation overhaul",
+                                            "Datapack villager trades",
+                                            "Item instances, stack templates, recipes, and dye components",
+                                            "World clocks, time markers, and saved-data split",
+                                            "Rendering materials, models, tints, GUI extraction, fluids, camera, and feature submission"
+                                        ],
+                            "detect":  [
+                                           "GuiGraphics",
+                                           "renderBg",
+                                           "LootItemFunctionType",
+                                           "SavedData",
+                                           "MultiBufferSource",
+                                           "BlockEntityType.Builder",
+                                           "EntityType.Builder"
+                                       ],
+                            "passes":  [
+                                           "neoforge-26-api",
+                                           "mcreator-1.21.x",
+                                           "assets"
+                                       ],
+                            "rules":  [
+                                          "block-entity-type-constructor",
+                                          "deferred-entity-type-registration",
+                                          "entity-server-damage",
+                                          "removed-block-lifecycle",
+                                          "tristate-minecraft-util",
+                                          "projectile-arrow-package"
+                                      ]
+                        },
+                        {
+                            "from":  "26.1",
+                            "to":  "26.2",
+                            "sourceType":  "official-primer",
+                            "officialPrimer":  "https://docs.neoforged.net/primer/docs/26.2/",
+                            "changes":  [
+                                            "Vulkan-aware rendering and generalized Blaze3D",
+                                            "Blend, GPU, vertex-format, bind-group, and render-pass rewrites",
+                                            "GUI/HUD reorganization and prepared font rendering",
+                                            "Feature rendering replaces direct MultiBufferSource uploads",
+                                            "Registry objects split into identifier and object holder classes",
+                                            "Advancement predicates, object collections, tags, and data components"
+                                        ],
+                            "detect":  [
+                                           "MultiBufferSource",
+                                           "VertexFormatElement",
+                                           "ChatFormatting",
+                                           "Minecraft.getInstance().screen",
+                                           "EntityType."
+                                       ],
+                            "passes":  [
+                                           "neoforge-26-api",
+                                           "assets"
+                                       ],
+                            "rules":  [
+                                          "tristate-minecraft-util",
+                                          "projectile-arrow-package"
+                                      ]
+                        }
+                    ]
+}

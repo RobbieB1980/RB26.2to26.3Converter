@@ -1,0 +1,672 @@
+{
+    "schemaVersion":  1,
+    "description":  "Encoded completed conversions. The converter matches modId + sourceVersion and applies overlays, forced passes, and named transforms automatically.",
+    "solutions":  [
+                      {
+                          "id":  "CASE-001-nextgen-furniture-1.21.1",
+                          "modIds":  [
+                                         "nextgen_furniture"
+                                     ],
+                          "sourceVersions":  [
+                                                 "1.21.1"
+                                             ],
+                          "sourceVersionAliases":  [
+                                                       "1.21.11"
+                                                   ],
+                          "routeHint":  "neoforge-1.21.x",
+                          "forcePasses":  [
+                                              "mechanical-java",
+                                              "neoforge-26-api",
+                                              "block-item-id",
+                                              "mcreator-1.21.x",
+                                              "assets"
+                                          ],
+                          "forceRules":  [
+
+                                         ],
+                          "transforms":  [
+                                             "custom-block-registration",
+                                             "client-package-moves",
+                                             "cutout-render-type",
+                                             "fusion-official"
+                                         ],
+                          "overlays":  [
+                                           {
+                                               "path":  "nextgen-furniture/1.21.1",
+                                               "requireAnyFile":  [
+                                                                      "src/main/java/net/nhatjs/nextgen_furniture/blockentity/renderer/ConsoleRenderer.java",
+                                                                      "src/main/java/net/nhatjs/nextgen_furniture/blockentity/renderer/LaptopRenderer.java"
+                                                                  ]
+                                           }
+                                       ],
+                          "dependencyHints":  [
+                                                  "fusion"
+                                              ],
+                          "notes":  "Proven full gradlew build + installable jar. Overlay supplies BER/standalone semantics. Legacy262Compat must be mod-scoped (JPMS-001) â€” package rb.legacy.converter.compat.nextgen_furniture."
+                      },
+                      {
+                          "id":  "CASE-003-mels-deco-1.21.4",
+                          "modIds":  [
+                                         "mels_deco"
+                                     ],
+                          "sourceVersions":  [
+                                                 "1.21.4"
+                                             ],
+                          "routeHint":  "neoforge-1.21.x",
+                          "forcePasses":  [
+                                              "mechanical-java",
+                                              "neoforge-26-api",
+                                              "mcreator-1.21.x",
+                                              "registry",
+                                              "block-item-id",
+                                              "config-order",
+                                              "assets"
+                                          ],
+                          "forceRules":  [
+                                             "baked-model-to-block-state-model",
+                                             "legacy-direction-property",
+                                             "armor-tool-item-components",
+                                             "removed-block-lifecycle",
+                                             "block-entity-value-io",
+                                             "legacy-datagen-isolation",
+                                             "texture-sheet-to-single-quad",
+                                             "game-rules-rewrite",
+                                             "block-entity-type-constructor",
+                                             "deferred-entity-type-registration",
+                                             "entity-server-damage",
+                                             "tristate-minecraft-util",
+                                             "projectile-arrow-package"
+                                         ],
+                          "transforms":  [
+                                             "custom-block-registration",
+                                             "client-package-moves",
+                                             "cutout-render-type"
+                                         ],
+                          "overlays":  [
+
+                                       ],
+                          "notes":  "Converter 2.0.2: full gradlew build + in-game verified with NextGen on Neo 26.2.0.72. ExactPrimer ~479 + Mcreator1218 GUI/API + ValueInput/permissions/Optional NBT/ItemOwner wave. Unused Legacy262Compat removed (JPMS-001)."
+                      },
+                      {
+                          "id":  "CASE-004-medsystem-1.21.1",
+                          "modIds":  [
+                                         "medsystem"
+                                     ],
+                          "sourceVersions":  [
+                                                 "1.21.1"
+                                             ],
+                          "routeHint":  "neoforge-1.21.x",
+                          "forcePasses":  [
+                                              "mechanical-java",
+                                              "neoforge-26-api",
+                                              "mcreator-1.21.x",
+                                              "registry",
+                                              "block-item-id",
+                                              "config-order",
+                                              "assets"
+                                          ],
+                          "forceRules":  [
+                                             "entity-render-state",
+                                             "block-entity-render-state",
+                                             "block-entity-value-io",
+                                             "legacy-datagen-isolation",
+                                             "texture-sheet-to-single-quad",
+                                             "game-rules-rewrite",
+                                             "block-entity-type-constructor",
+                                             "deferred-entity-type-registration",
+                                             "entity-server-damage",
+                                             "tristate-minecraft-util",
+                                             "projectile-arrow-package"
+                                         ],
+                          "transforms":  [
+                                             "client-package-moves"
+                                         ],
+                          "overlays":  [
+                                           {
+                                               "path":  "medsystem/1.21.1.zip",
+                                               "requireAnyFile":  [
+                                                                      "src/main/java/tnt/tarkovcraft/medsystem/MedicalSystem.java"
+                                                                  ]
+                                           }
+                                       ],
+                          "dependencyHints":  [
+                                                  "tarkovcraft_core",
+                                                  "configuration"
+                                              ],
+                          "notes":  "CASE-004 green reconvert fixed in 2.0.4: overlay rebuilt from proven green tree (not broken author-oracle DFU sources) + DELETE.txt for soft-deps/Vineflower leftovers/broken shaders/mixins; mixins.json drops DebugRenderer/EntityRenderDispatcher; soft-dep exclude also matches integration/carryon|sable paths. Proven: medsystem-2.12.1+mc26.2-neoforge.jar (~1.0MB). Prefer official 2.13.0+26.2 when published."
+                      },
+                      {
+                          "id":  "CASE-005-gecko-kings-1.21.1",
+                          "modIds":  [
+                                         "gecko_kings_avp_mod"
+                                     ],
+                          "sourceVersions":  [
+                                                 "1.21.1"
+                                             ],
+                          "routeHint":  "neoforge-1.21.x",
+                          "forcePasses":  [
+                                              "mechanical-java",
+                                              "neoforge-26-api",
+                                              "mcreator-1.21.x",
+                                              "registry",
+                                              "block-item-id",
+                                              "assets"
+                                          ],
+                          "forceRules":  [
+                                             "entity-render-state",
+                                             "game-rules-rewrite",
+                                             "deferred-entity-type-registration",
+                                             "armor-tool-item-components",
+                                             "projectile-arrow-package"
+                                         ],
+                          "transforms":  [
+                                             "client-package-moves"
+                                         ],
+                          "overlays":  [
+
+                                       ],
+                          "dependencyHints":  [
+                                                  "geckolib"
+                                              ],
+                          "notes":  "CASE-005 full restore: gecko_kings_avp_mod-24.5+mc26.2-neoforge.jar (~5.9MB) with 80 renderers + 43 models + 93 procedures (datagen exclude only). Primers: entity-render-state submit/extractRenderState for acid projectiles (ArrowRenderer pattern; now in 262-repair); register(\"id\", FooBlock::new)->registerBlock when Properties ctor (block-item-id); ServerBossEvent UUID; customServerAiStep ServerLevel; ArmorMaterial static (nested RegisterEvent; registerItemExtensions stub uses balanced braces + real newlines); Builder.<AcidEntity>of for AbstractArrow factories; applyEffectTick(ServerLevel,…)+strip renderInventoryText MUST be in 262-repair (2.10.5; were wrongly only on mcreator-1.20.1 residue so 1.21.x Mode B skipped them); EntityType tag builtInRegistryHolder; ThrownSplashPotion; ServerLevel GameRules; MobEffects SLOWNESS/JUMP_BOOST. 2.10.6: custom GameRules MUST use DeferredRegister(Registries.GAME_RULE)+new GameRule<> (MCreator 26.1.2); static GameRules.registerBoolean freezes-crash at constructMods (spawnHellishXenomorphs); forge:is_cave->c:is_cave; spawn-egg template restore; TemptGoal TEMPT_RANGE; recipe ingredients {\"item\"}/{\"tag\"}->string/#tag (Invoke-Minecraft262RecipeIngredientPass). In-game verified 2026-09-05 on 26.2.0.72; recipes cleaned same day."
+                      },
+                      {
+                          "id":  "CASE-006-easy-mob-farm-1.21.4",
+                          "modIds":  [
+                                         "easy_mob_farm"
+                                     ],
+                          "sourceVersions":  [
+                                                 "1.21.4"
+                                             ],
+                          "routeHint":  "neoforge-1.21.x",
+                          "forcePasses":  [
+                                              "mechanical-java",
+                                              "neoforge-26-api",
+                                              "mcreator-1.21.x",
+                                              "registry",
+                                              "block-item-id",
+                                              "config-order",
+                                              "assets"
+                                          ],
+                          "forceRules":  [
+                                             "block-entity-value-io",
+                                             "legacy-datagen-isolation",
+                                             "game-rules-rewrite",
+                                             "block-entity-type-constructor",
+                                             "deferred-entity-type-registration",
+                                             "entity-server-damage",
+                                             "tristate-minecraft-util",
+                                             "projectile-arrow-package"
+                                         ],
+                          "transforms":  [
+                                             "custom-block-registration",
+                                             "client-package-moves",
+                                             "cutout-render-type"
+                                         ],
+                          "overlays":  [
+                                           {
+                                               "path":  "easy-mob-farm/1.21.4",
+                                               "requireAnyFile":  [
+                                                                      "src/main/java/de/markusbordihn/easymobfarm/EasyMobFarm.java",
+                                                                      "src/main/java/de/markusbordihn/easymobfarm/client/renderer/blockentity/MobFarmBlockEntityRenderer.java"
+                                                                  ]
+                                           }
+                                       ],
+                          "dependencyHints":  [
+                                                  "jei"
+                                              ],
+                          "notes":  "CASE-006: Easy Mob Farm NeoForge 1.21.4 → 26.2. Overlay supplies BER render-state + FlyingMob leaf heuristic + modlauncher→FMLLoader + cubemob/frog variants + Item.Properties ctor shapes + MobFarmBonusConfig lazy ItemStacks; DELETE.txt drops gametest harness. Also encoded in 262r compile-repair / entity-subpackage / soft-dep-exclude. Proven jars: easy_mob_farm-10.3.0+mc26.2-neoforge.jar and tet/test-26.2 easy_mob_farm-1.0.0+mc26.2-neoforge.jar."
+                      },
+                      {
+                          "id":  "CASE-002-friend-1.20.1",
+                          "modIds":  [
+                                         "friend"
+                                     ],
+                          "sourceVersions":  [
+                                                 "1.20.1"
+                                             ],
+                          "routeHint":  "forge-1.20.1",
+                          "forcePasses":  [
+                                              "srg-1.20.1",
+                                              "mechanical-java",
+                                              "neoforge-26-api",
+                                              "geckolib",
+                                              "event-bus",
+                                              "registry",
+                                              "block-item-id"
+                                          ],
+                          "transforms":  [
+                                             "client-package-moves",
+                                             "submit-custom-geometry"
+                                         ],
+                          "overlays":  [
+
+                                       ],
+                          "notes":  "Friend-26.2 completed jar; geometry/API passes proven on this mod."
+                      },
+                      {
+                          "id":  "CASE-002-toww-1.20.1",
+                          "modIds":  [
+                                         "the_one_who_watches",
+                                         "toww"
+                                     ],
+                          "sourceVersions":  [
+                                                 "1.20.1"
+                                             ],
+                          "routeHint":  "forge-1.20.1",
+                          "forcePasses":  [
+                                              "srg-1.20.1",
+                                              "mechanical-java",
+                                              "neoforge-26-api",
+                                              "geckolib",
+                                              "mcreator-1.20.1",
+                                              "registry",
+                                              "block-item-id",
+                                              "event-bus"
+                                          ],
+                          "transforms":  [
+                                             "client-package-moves"
+                                         ],
+                          "overlays":  [
+
+                                       ],
+                          "notes":  "TOWW completed jar; GeckoLib5 + MCreator 1.20.1 residue passes."
+                      },
+                      {
+                          "id":  "CASE-002-knocker-1.21.8",
+                          "modIds":  [
+                                         "the_knocker"
+                                     ],
+                          "sourceVersions":  [
+                                                 "1.21.8"
+                                             ],
+                          "routeHint":  "neoforge-1.21.x",
+                          "forcePasses":  [
+                                              "mechanical-java",
+                                              "neoforge-26-api",
+                                              "mcreator-1.21.x",
+                                              "registry",
+                                              "block-item-id",
+                                              "event-bus"
+                                          ],
+                          "transforms":  [
+                                             "client-package-moves"
+                                         ],
+                          "overlays":  [
+                                           {
+                                               "path":  "the-knocker/1.21.8",
+                                               "requireAnyFile":  [
+                                                                      "src/main/java/net/mcreator/theknocker"
+                                                                  ]
+                                           }
+                                       ],
+                          "notes":  "Knocker completed jar; KnockerCompat overlay for respawn/command helpers."
+                      },
+                      {
+                          "id":  "CASE-002-moa-bath-1.21.8",
+                          "modIds":  [
+                                         "moa_bath"
+                                     ],
+                          "sourceVersions":  [
+                                                 "1.21.8"
+                                             ],
+                          "routeHint":  "neoforge-1.21.x",
+                          "forcePasses":  [
+                                              "mechanical-java",
+                                              "neoforge-26-api",
+                                              "mcreator-1.21.x",
+                                              "registry",
+                                              "block-item-id",
+                                              "config-order",
+                                              "assets"
+                                          ],
+                          "transforms":  [
+                                             "client-package-moves",
+                                             "cutout-render-type"
+                                         ],
+                          "overlays":  [
+
+                                       ],
+                          "notes":  "MOAdecor BATH proven networking/GUI/MCreator 1.21.x pass."
+                      },
+                      {
+                          "id":  "CASE-002-moa-electronics-1.21.8",
+                          "modIds":  [
+                                         "moa_decor_electronics"
+                                     ],
+                          "sourceVersions":  [
+                                                 "1.21.8"
+                                             ],
+                          "routeHint":  "neoforge-1.21.x",
+                          "forcePasses":  [
+                                              "mechanical-java",
+                                              "neoforge-26-api",
+                                              "mcreator-1.21.x",
+                                              "registry",
+                                              "block-item-id",
+                                              "config-order",
+                                              "assets"
+                                          ],
+                          "transforms":  [
+                                             "client-package-moves",
+                                             "cutout-render-type"
+                                         ],
+                          "overlays":  [
+
+                                       ],
+                          "notes":  "MOAdecor ELECTRONICS; registerItem Properties rewrite lessons."
+                      },
+                      {
+                          "id":  "CASE-002-moa-garden-1.21.8",
+                          "modIds":  [
+                                         "moa_garden"
+                                     ],
+                          "sourceVersions":  [
+                                                 "1.21.8"
+                                             ],
+                          "routeHint":  "neoforge-1.21.x",
+                          "forcePasses":  [
+                                              "mechanical-java",
+                                              "neoforge-26-api",
+                                              "mcreator-1.21.x",
+                                              "registry",
+                                              "block-item-id",
+                                              "config-order",
+                                              "assets"
+                                          ],
+                          "transforms":  [
+                                             "client-package-moves",
+                                             "cutout-render-type"
+                                         ],
+                          "overlays":  [
+
+                                       ],
+                          "notes":  "MOAdecor GARDEN; playBidirectional/registerOne networking lessons."
+                      },
+                      {
+                          "id":  "CASE-002-moa-lights-1.21.8",
+                          "modIds":  [
+                                         "moa_lights"
+                                     ],
+                          "sourceVersions":  [
+                                                 "1.21.8"
+                                             ],
+                          "routeHint":  "neoforge-1.21.x",
+                          "forcePasses":  [
+                                              "mechanical-java",
+                                              "neoforge-26-api",
+                                              "mcreator-1.21.x",
+                                              "registry",
+                                              "block-item-id",
+                                              "config-order",
+                                              "assets"
+                                          ],
+                          "transforms":  [
+                                             "client-package-moves",
+                                             "cutout-render-type"
+                                         ],
+                          "overlays":  [
+
+                                       ],
+                          "notes":  "MOAdecor LIGHTS."
+                      },
+                      {
+                          "id":  "CASE-002-moa-science-1.21.8",
+                          "modIds":  [
+                                         "moa_science"
+                                     ],
+                          "sourceVersions":  [
+                                                 "1.21.8"
+                                             ],
+                          "routeHint":  "neoforge-1.21.x",
+                          "forcePasses":  [
+                                              "mechanical-java",
+                                              "neoforge-26-api",
+                                              "mcreator-1.21.x",
+                                              "registry",
+                                              "block-item-id",
+                                              "config-order",
+                                              "assets"
+                                          ],
+                          "transforms":  [
+                                             "client-package-moves",
+                                             "cutout-render-type"
+                                         ],
+                          "overlays":  [
+
+                                       ],
+                          "notes":  "MOAdecor SCIENCE."
+                      },
+                      {
+                          "id":  "CASE-002-buildpaste-26.1.2",
+                          "modIds":  [
+                                         "buildpaste"
+                                     ],
+                          "sourceVersions":  [
+                                                 "26.1",
+                                                 "26.1.1",
+                                                 "26.1.2"
+                                             ],
+                          "routeHint":  "neoforge-26.0-26.1",
+                          "forcePasses":  [
+                                              "mechanical-java",
+                                              "neoforge-26-api",
+                                              "registry",
+                                              "block-item-id",
+                                              "assets"
+                                          ],
+                          "transforms":  [
+                                             "client-package-moves"
+                                         ],
+                          "overlays":  [
+
+                                       ],
+                          "notes":  "26.1.x short delta to 26.2."
+                      },
+                      {
+                          "id":  "CASE-002-creativesurvival-26.1.2",
+                          "modIds":  [
+                                         "creativesurvival"
+                                     ],
+                          "sourceVersions":  [
+                                                 "26.1",
+                                                 "26.1.1",
+                                                 "26.1.2"
+                                             ],
+                          "routeHint":  "neoforge-26.0-26.1",
+                          "forcePasses":  [
+                                              "mechanical-java",
+                                              "neoforge-26-api",
+                                              "registry",
+                                              "block-item-id",
+                                              "assets"
+                                          ],
+                          "transforms":  [
+
+                                         ],
+                          "overlays":  [
+
+                                       ],
+                          "notes":  "Template bump 26.1.2 to 26.2."
+                      },
+                      {
+                          "id":  "CASE-002-chaoskit-26.1.2",
+                          "modIds":  [
+                                         "pchaoskit"
+                                     ],
+                          "sourceVersions":  [
+                                                 "26.1",
+                                                 "26.1.1",
+                                                 "26.1.2"
+                                             ],
+                          "routeHint":  "neoforge-26.0-26.1",
+                          "forcePasses":  [
+                                              "mechanical-java",
+                                              "neoforge-26-api",
+                                              "registry",
+                                              "block-item-id",
+                                              "mcreator-1.21.x",
+                                              "assets"
+                                          ],
+                          "transforms":  [
+
+                                         ],
+                          "overlays":  [
+
+                                       ],
+                          "notes":  "MCreator/NeoForge 26.1.2 workspace bumped to 26.2."
+                      },
+                      {
+                          "id":  "CASE-002-hospital-1.12.2",
+                          "modIds":  [
+                                         "the_hospital_mod"
+                                     ],
+                          "sourceVersions":  [
+                                                 "1.12",
+                                                 "1.12.1",
+                                                 "1.12.2"
+                                             ],
+                          "routeHint":  "unsupported-needs-112-pipeline",
+                          "forcePasses":  [
+
+                                          ],
+                          "transforms":  [
+
+                                         ],
+                          "overlays":  [
+
+                                       ],
+                          "stopWithMessage":  "Hospital/Forge 1.12.x conversions use Convert-112ToNeoForge262 (not this 1.20.1-26.2 pipeline). See CASE-002 hospital workspace.",
+                          "notes":  "Encoded as guard so agents/converter do not pretend the 1.20.1 pipeline covers 1.12."
+                      }
+                  ],
+    "bandDefaults":  [
+                         {
+                             "id":  "BAND-forge-1.20.1",
+                             "matchSourceVersions":  [
+                                                         "1.20.1"
+                                                     ],
+                             "matchLoaders":  [
+                                                  "forge"
+                                              ],
+                             "forcePasses":  [
+                                                 "srg-1.20.1",
+                                                 "mechanical-java",
+                                                 "neoforge-26-api",
+                                                 "mcreator-1.20.1",
+                                                 "geckolib",
+                                                 "registry",
+                                                 "block-item-id",
+                                                 "event-bus"
+                                             ],
+                             "transforms":  [
+                                                "custom-block-registration",
+                                                "client-package-moves",
+                                                "submit-custom-geometry"
+                                            ]
+                         },
+                         {
+                             "id":  "BAND-neoforge-1.21.8",
+                             "matchSourceVersions":  [
+                                                         "1.21.8"
+                                                     ],
+                             "matchLoaders":  [
+                                                  "neoforge"
+                                              ],
+                             "forcePasses":  [
+                                                 "mechanical-java",
+                                                 "neoforge-26-api",
+                                                 "mcreator-1.21.x",
+                                                 "registry",
+                                                 "block-item-id",
+                                                 "config-order",
+                                                 "assets"
+                                             ],
+                             "transforms":  [
+                                                "custom-block-registration",
+                                                "client-package-moves",
+                                                "cutout-render-type"
+                                            ]
+                         },
+                         {
+                             "id":  "BAND-neoforge-1.21.1",
+                             "matchSourceVersions":  [
+                                                         "1.21.1",
+                                                         "1.21.11"
+                                                     ],
+                             "matchLoaders":  [
+                                                  "neoforge"
+                                              ],
+                             "forcePasses":  [
+                                                 "mechanical-java",
+                                                 "neoforge-26-api",
+                                                 "block-item-id",
+                                                 "assets"
+                                             ],
+                             "transforms":  [
+                                                "custom-block-registration",
+                                                "client-package-moves",
+                                                "cutout-render-type"
+                                            ]
+                         },
+                         {
+                             "id":  "BAND-neoforge-1.21.4",
+                             "matchSourceVersions":  [
+                                                         "1.21.4"
+                                                     ],
+                             "matchLoaders":  [
+                                                  "neoforge"
+                                              ],
+                             "forcePasses":  [
+                                                 "mechanical-java",
+                                                 "neoforge-26-api",
+                                                 "mcreator-1.21.x",
+                                                 "registry",
+                                                 "block-item-id",
+                                                 "config-order",
+                                                 "assets"
+                                             ],
+                             "forceRules":  [
+                                                "baked-model-to-block-state-model",
+                                                "legacy-direction-property",
+                                                "armor-tool-item-components",
+                                                "removed-block-lifecycle",
+                                                "block-entity-value-io",
+                                                "legacy-datagen-isolation",
+                                                "texture-sheet-to-single-quad",
+                                                "game-rules-rewrite",
+                                                "block-entity-type-constructor",
+                                                "deferred-entity-type-registration",
+                                                "entity-server-damage",
+                                                "tristate-minecraft-util",
+                                                "projectile-arrow-package"
+                                            ],
+                             "transforms":  [
+                                                "custom-block-registration",
+                                                "client-package-moves",
+                                                "cutout-render-type"
+                                            ]
+                         },
+                         {
+                             "id":  "BAND-neoforge-26.1",
+                             "matchSourceVersions":  [
+                                                         "26.1",
+                                                         "26.1.1",
+                                                         "26.1.2"
+                                                     ],
+                             "matchLoaders":  [
+                                                  "neoforge"
+                                              ],
+                             "forcePasses":  [
+                                                 "mechanical-java",
+                                                 "neoforge-26-api",
+                                                 "registry",
+                                                 "block-item-id",
+                                                 "assets"
+                                             ],
+                             "transforms":  [
+                                                "client-package-moves"
+                                            ]
+                         }
+                     ]
+}

@@ -1,0 +1,171 @@
+{
+  "version": "1.3.0",
+  "minecraftTarget": "26.2",
+  "skipModIds": [
+    "minecraft",
+    "forge",
+    "neoforge",
+    "java",
+    "fml",
+    "mcp",
+    "forgegradle"
+  ],
+  "neverConvert": {
+    "architectury": {
+      "aliases": ["architectury", "architectury_api", "architectury-api"],
+      "modrinth": "architectury-api",
+      "reason": "Loader API — wait for an official NeoForge 26.2 build; do not decompile-port."
+    },
+    "kotlinforforge": {
+      "aliases": ["kotlinforforge", "kotlin-for-forge", "thedarkcolour.kotlinforforge"],
+      "modrinth": "kotlin-for-forge",
+      "reason": "Language adapter — needs an official 26.2 artifact."
+    },
+    "mixinextras": {
+      "aliases": ["mixinextras", "mixinextras_common"],
+      "reason": "Annotation library bundled by NeoForge/ModDevGradle."
+    },
+    "flywheel": {
+      "aliases": ["flywheel", "flywheel_backend"],
+      "modrinth": "flywheel",
+      "reason": "Rendering engine — too large and loader-specific to auto-convert."
+    },
+    "create": {
+      "aliases": ["create"],
+      "modrinth": "create",
+      "reason": "Too large for automatic jar conversion; require an official 26.2 port."
+    },
+    "fabric_api": {
+      "aliases": ["fabric-api", "fabric_api"],
+      "reason": "Wrong loader."
+    }
+  },
+  "libraries": [
+    {
+      "modId": "fusion",
+      "aliases": ["fusion-connected-textures"],
+      "imports": ["com.supermartijn642.fusion"],
+      "action": "official",
+      "modrinth": "fusion-connected-textures",
+      "tomlVersionRange": "[1.3.7,)"
+    },
+    {
+      "modId": "geckolib",
+      "aliases": ["geckolib3", "geckolib4"],
+      "imports": ["software.bernie.geckolib", "com.geckolib", "GeoEntity", "GeoAnimatable", "GeoModel"],
+      "action": "official",
+      "maven": {
+        "coordinate": "com.geckolib:geckolib-neoforge-26.2:5.5.3",
+        "repositories": [
+          "https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/"
+        ]
+      },
+      "modrinth": "geckolib",
+      "tomlVersionRange": "[5.5,)"
+    },
+    {
+      "modId": "smartbrainlib",
+      "aliases": ["sbl"],
+      "imports": ["net.tslat.smartbrainlib", "tslat.smartbrain", "SmartBrainOwner"],
+      "action": "official",
+      "maven": {
+        "coordinate": "net.tslat.smartbrainlib:SmartBrainLib-neoforge-26.2:2.0.0",
+        "repositories": [
+          "https://dl.cloudsmith.io/public/tslat/sbl/maven/",
+          "https://dl.cloudsmith.io/public/tslat/tslat/maven/"
+        ]
+      },
+      "curseMaven": "curse.maven:smartbrainlib-661293:8345471",
+      "modrinth": "smartbrainlib",
+      "tomlVersionRange": "[2.0,)"
+    },
+    {
+      "modId": "curios",
+      "aliases": ["curios_api", "curios-api"],
+      "imports": ["top.theillusivec4.curios", "curios.api"],
+      "action": "official-or-convert",
+      "modrinth": "curios",
+      "tomlVersionRange": "[1.0,)"
+    },
+    {
+      "modId": "jei",
+      "aliases": ["justenoughitems"],
+      "imports": ["mezz.jei"],
+      "action": "official-or-convert",
+      "modrinth": "jei",
+      "tomlVersionRange": "[1.0,)"
+    },
+    {
+      "modId": "cloth_config",
+      "aliases": ["cloth-config", "cloth_config2", "cloth-config2"],
+      "imports": ["me.shedaniel.clothconfig", "me.shedaniel.autoconfig"],
+      "action": "official-or-convert",
+      "modrinth": "cloth-config",
+      "tomlVersionRange": "[1.0,)"
+    },
+    {
+      "modId": "playeranimator",
+      "aliases": ["player_animator", "player-animator"],
+      "imports": ["dev.kosmx.playerAnim", "com.zigythebird.playeranimator"],
+      "action": "official-or-convert",
+      "modrinth": "playeranimator",
+      "tomlVersionRange": "[1.0,)"
+    },
+    {
+      "modId": "terrablender",
+      "aliases": ["terra_blender"],
+      "imports": ["terrablender"],
+      "action": "official-or-convert",
+      "modrinth": "terrablender",
+      "tomlVersionRange": "[1.0,)"
+    },
+    {
+      "modId": "patchouli",
+      "aliases": [],
+      "imports": ["vazkii.patchouli"],
+      "action": "official-or-convert",
+      "modrinth": "patchouli",
+      "tomlVersionRange": "[1.0,)"
+    },
+    {
+      "modId": "jade",
+      "aliases": ["wthit", "hwyla"],
+      "imports": ["snownee.jade"],
+      "action": "official-or-convert",
+      "modrinth": "jade",
+      "tomlVersionRange": "[1.0,)"
+    },
+    {
+      "modId": "moonlight",
+      "aliases": ["moonlight_lib", "selene"],
+      "imports": ["net.mehvahdjukaar.moonlight"],
+      "action": "official-or-convert",
+      "modrinth": "moonlight",
+      "tomlVersionRange": "[1.0,)"
+    },
+    {
+      "modId": "citadel",
+      "aliases": [],
+      "imports": ["com.github.alexthe666.citadel"],
+      "action": "official-or-convert",
+      "modrinth": "citadel",
+      "tomlVersionRange": "[1.0,)"
+    },
+    {
+      "modId": "caelus",
+      "aliases": ["caelus_api"],
+      "imports": ["com.github.alexthe666.caelus", "com.illusivesoulworks.caelus"],
+      "action": "official-or-convert",
+      "modrinth": "caelus",
+      "tomlVersionRange": "[1.0,)"
+    },
+    {
+      "modId": "bookshelf",
+      "aliases": ["bookshelf_lib"],
+      "imports": ["net.darkhax.bookshelf"],
+      "action": "official-or-convert",
+      "modrinth": "bookshelf-lib",
+      "tomlVersionRange": "[1.0,)"
+    }
+  ]
+}
