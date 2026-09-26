@@ -117,7 +117,9 @@ public sealed class MainForm : Form
                     _log.AppendText(Environment.NewLine + buildResult.Error);
                 _status.Text = buildResult.ExitCode == 0
                     ? "Conversion and Gradle build completed; inspect MIGRATION_EVIDENCE.md."
-                    : $"Conversion completed, but Gradle build failed with exit code {buildResult.ExitCode}.";
+                    : buildResult.ExitCode == 2
+                        ? "Conversion completed; Gradle build was unavailable for this input."
+                        : $"Conversion completed, but Gradle build failed with exit code {buildResult.ExitCode}.";
             }
             else
             {

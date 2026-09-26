@@ -8,9 +8,9 @@ $ErrorActionPreference = 'Stop'
 $javaRoot = Join-Path ${env:ProgramFiles} 'Eclipse Adoptium'
 $javaHome = Get-ChildItem $javaRoot -Directory -Filter 'jdk-25*' -ErrorAction SilentlyContinue |
     Sort-Object Name -Descending | Select-Object -First 1 -ExpandProperty FullName
-if (-not $javaHome -or -not (Test-Path (Join-Path $javaHome 'bin\java.exe'))) { throw 'Temurin JDK 25 was not found.' }
+if (-not $javaHome -or -not (Test-Path (Join-Path $javaHome 'bin\java.exe'))) { Write-Output 'Build unavailable: Temurin JDK 25 was not found.'; exit 2 }
 $gradlew = Join-Path $ProjectRoot 'gradlew.bat'
-if (-not (Test-Path $gradlew)) { throw "gradlew.bat missing under $ProjectRoot" }
+if (-not (Test-Path $gradlew)) { Write-Output "Build unavailable: gradlew.bat is missing under $ProjectRoot. A compiled JAR does not contain a Gradle source project."; exit 2 }
 $props = Join-Path $ProjectRoot 'gradle.properties'
 $pin = "org.gradle.java.home=$($javaHome -replace '\\','/')"
 $text = if (Test-Path $props) { Get-Content $props -Raw } else { '' }
