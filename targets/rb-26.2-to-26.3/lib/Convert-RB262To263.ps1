@@ -88,6 +88,20 @@ function Normalize-JavaSources([string]$Root) {
     return $count
 }
 
+function Normalize-TextBoms([string]$Root) {
+    $count = 0
+    $extensions = @('.gradle','.gradle.kts','.properties','.toml','.json','.md','.txt')
+    foreach ($file in Get-ChildItem -LiteralPath $Root -Recurse -File -ErrorAction SilentlyContinue) {
+        if ($extensions -notcontains $file.Extension.ToLowerInvariant()) { continue }
+        $bytes = [IO.File]::ReadAllBytes($file.FullName)
+        if ($bytes.Length -ge 3 -and $bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF) {
+            [IO.File]::WriteAllBytes($file.FullName, $bytes[3..($bytes.Length - 1)])
+            $count++
+        }
+    }
+    return $count
+}
+
 function Update-Java26x3Apis([string]$Root) {
     $count = 0
     foreach ($file in Get-ChildItem -LiteralPath $Root -Recurse -File -Filter '*.java' -ErrorAction SilentlyContinue) {
@@ -158,6 +172,8 @@ function Invoke-RB262To263 {
     if (Disable-NeoFormRecompilation $outputFull) { $changed.Add('build.gradle (disable NeoForm recompilation)') }
     $bomCount = Normalize-JavaSources $outputFull
     if ($bomCount -gt 0) { $changed.Add("Java source BOM normalization ($bomCount files)") }
+    $textBomCount = Normalize-TextBoms $outputFull
+    if ($textBomCount -gt 0) { $changed.Add("Text source BOM normalization ($textBomCount files)") }
     $apiCount = Update-Java26x3Apis $outputFull
     if ($apiCount -gt 0) { $changed.Add("Java 26.3 API compatibility transforms ($apiCount files)") }
     foreach ($file in Get-ChildItem -LiteralPath $outputFull -Recurse -File -Filter 'pack.mcmeta') {
