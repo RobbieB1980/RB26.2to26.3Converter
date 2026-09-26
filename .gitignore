@@ -7,3 +7,6 @@ validation/
 *.suo
 
 targets/*/legacy-pipeline/lib/decompiler-cache/
+__pycache__/
+*.pyc
+targets/*/legacy-pipeline/lib/dep-cache/

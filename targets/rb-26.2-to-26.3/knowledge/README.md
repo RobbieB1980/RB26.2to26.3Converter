@@ -22,3 +22,9 @@ are not promoted. Runtime remains untested until independently validated.
 Diagnosed reusable fixes stay in the dedicated solutions index with exact
 source/target/pin and failure-pattern matching; build history is not an automatic
 patch rule. Repair must record its diagnosis and validation in `result.json`.
+
+`dependency-cache.md` documents the shared source/target cache and Python 3.14
+resolver. `api-review-rules.json` provides detection-only Java review triggers;
+`supplementary-sources.json` distinguishes Mojang release notes, Misode's
+community changelog and the upstream NeoForged primer. Unresolved findings
+remain pending cases, never hardened fixes.

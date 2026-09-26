@@ -5,6 +5,11 @@ param(
     [string]$LogFileName = 'compile-errors.log'
 )
 $ErrorActionPreference = 'Stop'
+$dependencyReport = Join-Path $ProjectRoot 'dependency-resolution.json'
+if (Test-Path -LiteralPath $dependencyReport) {
+    $dependencyState = Get-Content -LiteralPath $dependencyReport -Raw | ConvertFrom-Json
+    if ($dependencyState.blocked_required -gt 0) { Write-Output 'Build blocked by unresolved 26.3 dependencies. Read DEPENDENCIES-26.3.md and rerun Resolve-Dependencies.ps1 after repair.'; exit 3 }
+}
 $javaRoot = Join-Path ${env:ProgramFiles} 'Eclipse Adoptium'
 $javaHome = Get-ChildItem $javaRoot -Directory -Filter 'jdk-25*' -ErrorAction SilentlyContinue |
     Sort-Object Name -Descending | Select-Object -First 1 -ExpandProperty FullName

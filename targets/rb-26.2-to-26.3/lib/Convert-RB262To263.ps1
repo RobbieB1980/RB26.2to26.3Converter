@@ -157,7 +157,9 @@ function Invoke-RB262To263 {
     param(
         [Parameter(Mandatory)][string]$InputPath,
         [string]$OutputPath = '',
-        [string]$NeoVersion = 'neoforge-26.3.0.7-beta'
+        [string]$NeoVersion = 'neoforge-26.3.0.7-beta',
+        [string]$GeckoLibVersion = 'geckolib-neoforge-26.3-5.5.7',
+        [switch]$OfflineDependencies
     )
     $resolvedInput = (Resolve-Path -LiteralPath $InputPath -ErrorAction Stop).Path
     $temporaryInput = $null
@@ -168,7 +170,7 @@ function Invoke-RB262To263 {
         New-Item -ItemType Directory -Path $legacyRoot -Force | Out-Null
         $legacyScript = Join-Path (Split-Path -Parent $PSScriptRoot) 'legacy-pipeline\Convert-JarToProject.ps1'
         if (-not (Test-Path -LiteralPath $legacyScript)) { throw "Missing legacy JAR pipeline: $legacyScript" }
-        & $legacyScript -JarPath $resolvedInput -OutputPath $decompiled -ContinueToNeoForge262 -NeoVersion '26.2.0.72' -MinecraftVersion '26.2' | Out-Null
+        & $legacyScript -JarPath $resolvedInput -OutputPath $decompiled -ContinueToNeoForge262 -NeoVersion '26.2.0.72' -MinecraftVersion '26.2' -ExternalDependencyResolver | Out-Null
         $inputFull = $decompiled + '-26.2'
         if (-not (Test-Path -LiteralPath $inputFull -PathType Container)) { throw "Legacy JAR pipeline did not produce a 26.2 scaffold: $inputFull" }
         $temporaryInput = $legacyRoot
@@ -218,6 +220,16 @@ function Invoke-RB262To263 {
         $changed.Add($file.FullName.Substring($outputFull.Length + 1))
     }
     $manifest = [ordered]@{ target_id='rb-26.2-to-26.3'; status='Converted'; source_path=$resolvedInput; input_kind=$(if ($temporaryInput) { 'jar' } else { 'project-folder' }); output_path=$outputFull; source_minecraft='26.2'; target_minecraft='26.3'; target_neo_version=$NeoVersion; knowledge_index='PrimerChangeIndex-26.2-to-26.3.json'; knowledge_entries=$knowledge.entries.Count; changed_files=@($changed); warnings=@($warnings); validation=[ordered]@{ deterministic_changes=$true; build='not-run'; runtime='not-run'; content='not-run' } }
+    Write-JsonFile (Join-Path $outputFull 'conversion-manifest.json') $manifest
+    $depArgs = @('-NoProfile','-ExecutionPolicy','Bypass','-File',(Join-Path $targetRoot 'Resolve-Dependencies.ps1'),'-SourcePath',$resolvedInput,'-ProjectRoot',$outputFull,'-GeckoLibVersion',$GeckoLibVersion)
+    if ($OfflineDependencies) { $depArgs += '-Offline' }
+    & powershell.exe @depArgs | ForEach-Object { Write-Host $_ }
+    $dependencyExit = $LASTEXITCODE
+    if ($dependencyExit -ne 0) {
+        $manifest.status = 'NeedsDependencyRepair'
+        $manifest.warnings += 'Dependency resolution requires repair; inspect DEPENDENCIES-26.3.md and dependency-resolution.json. Do not substitute 26.2 dependencies.'
+    }
+    $manifest['dependency_resolution_exit'] = $dependencyExit
     Write-JsonFile (Join-Path $outputFull 'conversion-manifest.json') $manifest
     $evidence = @('# RB 26.2 -> 26.3 migration evidence','',"Target NeoForge version: $NeoVersion",'', '## Changed files') + @($changed | ForEach-Object { '- ' + $_ }) + @('', '## Remaining review') + @($warnings | ForEach-Object { '- ' + $_ }) + @('- Client/rendering Java APIs require AST or Codex repair review.', '- Dependency compatibility and Gradle build remain unvalidated until the target NeoForge artifact is available.')
     Set-Content -LiteralPath (Join-Path $outputFull 'MIGRATION_EVIDENCE.md') -Value $evidence -Encoding UTF8

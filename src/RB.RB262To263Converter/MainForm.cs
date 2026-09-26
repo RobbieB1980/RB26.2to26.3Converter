@@ -710,7 +710,7 @@ public sealed class MainForm : Form
             return;
         }
         var args = new List<string> { "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", Quote(script),
-            "-InputPath", Quote(inFull), "-OutputPath", Quote(outFull), "-NeoVersion", Quote(neo) };        _log.Clear();
+            "-InputPath", Quote(inFull), "-OutputPath", Quote(outFull), "-NeoVersion", Quote(neo), "-GeckoLibVersion", Quote(gecko) };        _log.Clear();
         AppendLog("RB 26.2 to 26.3 Converter", Color.White);
         AppendLog(jarMode ? "Mode  : JAR decompile pipeline" : "Mode  : Project convert", Color.LightSkyBlue);
         AppendLog($"Input : {inFull}", Color.LightSkyBlue);

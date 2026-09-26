@@ -1,0 +1,197 @@
+{
+  "schema_version": 1,
+  "policy": "Project identities only; target releases require exact NeoForge 26.3 metadata, matching JAR identity and upstream checksum. Never convert dependencies automatically.",
+  "artifacts": [],
+  "target_minecraft": "26.3",
+  "projects": {
+    "fusion": {
+      "imports": [
+        "com.supermartijn642.fusion"
+      ],
+      "artifacts": [],
+      "aliases": [
+        "fusion-connected-textures"
+      ],
+      "modrinth": "fusion-connected-textures"
+    },
+    "geckolib": {
+      "imports": [
+        "software.bernie.geckolib",
+        "com.geckolib"
+      ],
+      "artifacts": [
+        "geckolib-neoforge-26.2"
+      ],
+      "aliases": [
+        "geckolib3",
+        "geckolib4"
+      ],
+      "modrinth": "geckolib"
+    },
+    "smartbrainlib": {
+      "imports": [
+        "net.tslat.smartbrainlib",
+        "tslat.smartbrain"
+      ],
+      "artifacts": [
+        "SmartBrainLib-neoforge-26.2"
+      ],
+      "aliases": [
+        "sbl"
+      ],
+      "modrinth": "smartbrainlib"
+    },
+    "curios": {
+      "imports": [
+        "top.theillusivec4.curios",
+        "curios.api"
+      ],
+      "artifacts": [],
+      "aliases": [
+        "curios_api",
+        "curios-api"
+      ],
+      "modrinth": "curios"
+    },
+    "jei": {
+      "imports": [
+        "mezz.jei"
+      ],
+      "artifacts": [],
+      "aliases": [
+        "justenoughitems"
+      ],
+      "modrinth": "jei"
+    },
+    "cloth_config": {
+      "imports": [
+        "me.shedaniel.clothconfig",
+        "me.shedaniel.autoconfig"
+      ],
+      "artifacts": [],
+      "aliases": [
+        "cloth-config",
+        "cloth_config2",
+        "cloth-config2"
+      ],
+      "modrinth": "cloth-config"
+    },
+    "playeranimator": {
+      "imports": [
+        "dev.kosmx.playerAnim",
+        "com.zigythebird.playeranimator"
+      ],
+      "artifacts": [],
+      "aliases": [
+        "player_animator",
+        "player-animator"
+      ],
+      "modrinth": "playeranimator"
+    },
+    "terrablender": {
+      "imports": [],
+      "artifacts": [],
+      "aliases": [
+        "terra_blender"
+      ],
+      "modrinth": "terrablender"
+    },
+    "patchouli": {
+      "imports": [
+        "vazkii.patchouli"
+      ],
+      "artifacts": [],
+      "aliases": [],
+      "modrinth": "patchouli"
+    },
+    "jade": {
+      "imports": [
+        "snownee.jade"
+      ],
+      "artifacts": [],
+      "aliases": [
+        "wthit",
+        "hwyla"
+      ],
+      "modrinth": "jade"
+    },
+    "moonlight": {
+      "imports": [
+        "net.mehvahdjukaar.moonlight"
+      ],
+      "artifacts": [],
+      "aliases": [
+        "moonlight_lib",
+        "selene"
+      ],
+      "modrinth": "moonlight"
+    },
+    "citadel": {
+      "imports": [
+        "com.github.alexthe666.citadel"
+      ],
+      "artifacts": [],
+      "aliases": [],
+      "modrinth": "citadel"
+    },
+    "caelus": {
+      "imports": [
+        "com.github.alexthe666.caelus",
+        "com.illusivesoulworks.caelus"
+      ],
+      "artifacts": [],
+      "aliases": [
+        "caelus_api"
+      ],
+      "modrinth": "caelus"
+    },
+    "bookshelf": {
+      "imports": [
+        "net.darkhax.bookshelf"
+      ],
+      "artifacts": [],
+      "aliases": [
+        "bookshelf_lib"
+      ],
+      "modrinth": "bookshelf-lib"
+    },
+    "architectury": {
+      "imports": [],
+      "artifacts": [],
+      "aliases": [
+        "architectury",
+        "architectury_api",
+        "architectury-api"
+      ],
+      "modrinth": "architectury-api"
+    },
+    "kotlinforforge": {
+      "imports": [],
+      "artifacts": [],
+      "aliases": [
+        "kotlinforforge",
+        "kotlin-for-forge",
+        "thedarkcolour.kotlinforforge"
+      ],
+      "modrinth": "kotlin-for-forge"
+    },
+    "flywheel": {
+      "imports": [],
+      "artifacts": [],
+      "aliases": [
+        "flywheel",
+        "flywheel_backend"
+      ],
+      "modrinth": "flywheel"
+    },
+    "create": {
+      "imports": [],
+      "artifacts": [],
+      "aliases": [
+        "create"
+      ],
+      "modrinth": "create"
+    }
+  },
+  "source_minecraft": "26.2"
+}

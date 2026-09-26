@@ -1,0 +1,29 @@
+{
+  "source_minecraft": "26.2",
+  "target_minecraft": "26.3",
+  "checked_date": "2026-09-26",
+  "sources": [
+    {
+      "title": "Minecraft Java Edition 26.3",
+      "url": "https://www.minecraft.net/en-us/article/minecraft-java-edition-26-3",
+      "authority": "Mojang official release notes",
+      "usage": "Primary vanilla gameplay, resource-pack and data-pack behavior changes. Does not establish NeoForge API or ModDevGradle signatures.",
+      "verified_topics": ["Data pack 121.0", "Resource pack 97.1", "SDL3 windowing", "Block transformer registry and interaction behavior", "Cooking recipe timing changes"],
+      "content_policy": "Retrieve relevant sections on demand. No full copyrighted article is bundled."
+    },
+    {
+      "title": "Misode Minecraft 26.3 changelog",
+      "url": "https://misode.github.io/versions/?id=26.3&tab=changelog",
+      "authority": "Community-maintained technical changelog",
+      "usage": "Supplementary discovery and cross-checking of data and resource changes. Verify concrete rules against Mojang notes, NeoForged primer or exact physical sources.",
+      "verification": "Page accessible via HTTPS; application renders changelog dynamically. No full changelog snapshot imported.",
+      "content_policy": "Retrieve relevant entries on demand. Do not treat a linked changelog as a validated repair."
+    },
+    {
+      "title": "NeoForged Minecraft 26.2 to 26.3 migration primer",
+      "url": "https://docs.neoforged.net/primer/docs/26.3/",
+      "authority": "NeoForged migration primer, vanilla API overview",
+      "usage": "Use bundled revision-pinned snapshot and exact target sources for API changes."
+    }
+  ]
+}

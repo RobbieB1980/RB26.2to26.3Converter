@@ -16,7 +16,7 @@ $id = 'build-' + [datetime]::UtcNow.ToString('yyyyMMddTHHmmss') + '-' + [guid]::
 $caseRoot = Join-Path $ProjectRoot ('.gokuai/solved-cases/' + $id)
 New-Item -ItemType Directory -Path $caseRoot -Force | Out-Null
 $evidence = @()
-foreach ($name in @('conversion-manifest.json','MIGRATION_EVIDENCE.md','MIGRATION_EVIDENCE.json','COMPILE_REPORT.md',$LogFileName,'gradle.properties','build.gradle','build.gradle.kts','settings.gradle','settings.gradle.kts','gradle/wrapper/gradle-wrapper.properties')) {
+foreach ($name in @('dependency-detection.json','dependency-resolution.json','RESOURCE_PRESERVATION.json','API_REVIEW-26.3.json','rb-dependencies.gradle','conversion-manifest.json','MIGRATION_EVIDENCE.md','MIGRATION_EVIDENCE.json','COMPILE_REPORT.md',$LogFileName,'gradle.properties','build.gradle','build.gradle.kts','settings.gradle','settings.gradle.kts','gradle/wrapper/gradle-wrapper.properties')) {
     $source = Join-Path $ProjectRoot $name
     if (Test-Path -LiteralPath $source -PathType Leaf) {
         $dest = Join-Path $caseRoot $name

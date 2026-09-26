@@ -1,0 +1,30 @@
+{
+  "source": "26.2",
+  "target": "26.3",
+  "rules": [
+    {
+      "id": "renderpearl-gpu-interfaces",
+      "patterns": ["\\bPrimitiveTopology\\b", "\\bGpuBuffer(?:Slice)?\\b", "\\bGpuTextureView\\b", "\\bRenderPass\\b", "\\bVertexFormat\\b"],
+      "evidence": "Official-Primer-26.2-to-26.3.md: renderpearl migration. Package moves and class/interface changes; exact resolved source is required.",
+      "action": "Inspect exact target renderpearl and Minecraft signatures and rendering semantics. Do not blanket-rewrite imports or suppress rendering."
+    },
+    {
+      "id": "pose-stack-quaternion",
+      "patterns": ["\\.mulPose\\s*\\("],
+      "evidence": "Official primer PoseStack section documents rotate; the pchaoskit compiler log reports mulPose(Quaternionf) overload failure.",
+      "action": "Resolve receiver and argument types using AST and pinned sources. Distinguish quaternion rotation from matrix transforms before editing."
+    },
+    {
+      "id": "tool-item-block-transformers",
+      "patterns": ["\\b(?:AxeItem|HoeItem|ShovelItem)\\b"],
+      "evidence": "Official primer BlockTransformer section documents removal of these tool subclasses and transformation registries.",
+      "action": "Inspect exact Item properties, tool components, transformation data and interaction semantics. Preserve mining, stripping, tilling and flattening behavior; do not merely change the superclass."
+    },
+    {
+      "id": "payload-codec-buffer-types",
+      "patterns": ["StreamCodec\\s*<\\s*FriendlyByteBuf", "\\bplayBidirectional\\s*\\(", "\\bRegistryFriendlyByteBuf\\b"],
+      "evidence": "User-reported pchaoskit build failure; exact NeoForge PayloadRegistrar and codec sources required. No generic universal buffer replacement is established.",
+      "action": "Compare registrar generic bounds, codec buffer type, registry access and both packet directions. Validate client/server encode-decode behavior; do not use raw casts to silence errors."
+    }
+  ]
+}

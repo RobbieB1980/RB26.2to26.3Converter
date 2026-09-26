@@ -189,5 +189,9 @@
       "action": "Apply idempotent source transforms: SwingAnimation.DEFAULT/true; false simulation flag; Desktop browse fallback; typed material map; raw Property cast at the compatibility boundary.",
       "validation": "Compile with NeoForge 26.3 and JDK 25; separately smoke-test client URL actions and gameplay behavior."
     }
-  ]
+  ],
+  "supplementarySources": [
+    "https://misode.github.io/versions/?id=26.3&tab=changelog"
+  ],
+  "apiReviewRules": "api-review-rules.json"
 }

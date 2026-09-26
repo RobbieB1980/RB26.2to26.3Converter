@@ -29,6 +29,7 @@ param(
     [string]$NeoVersion = '26.2.0.72',
     [string]$MinecraftVersion = '26.2',
     [string]$SourceVersion = '',
+    [switch]$ExternalDependencyResolver,
     [switch]$DryRun
 )
 
@@ -445,6 +446,7 @@ try {
             NeoVersion       = $NeoVersion
             OriginalJarPath  = $JarPath
         }
+        if ($ExternalDependencyResolver) { $cargs.SkipDependencyDownload = $true; $cargs.SkipDependencyConvert = $true }
         if ($CompileAfterConvert) { & $converter @cargs -Compile }
         else { & $converter @cargs }
         Write-Ok "NeoForge scaffold: $neoOut"

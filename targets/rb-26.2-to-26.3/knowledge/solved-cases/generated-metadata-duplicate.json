@@ -1,0 +1,13 @@
+{
+  "id": "resource-audit-generated-mod-metadata",
+  "source_minecraft": "26.2",
+  "target_minecraft": "26.3",
+  "neo_version": "26.3.0.7-beta",
+  "failure_pattern": "Entry META-INF/neoforge.mods.toml is a duplicate",
+  "status": "build-verified",
+  "diagnosis": "Resource audit restored original mod metadata into src/main/resources while ModDevGradle already generated the target metadata from src/main/templates.",
+  "repair": "Recognize the target metadata template in the audit and retain original metadata only as source evidence. Preserve original third-party dependency blocks in the target template. Do not globally exclude duplicates or remove unrelated resources.",
+  "validation": "Regression test test_generated_metadata_not_restored_as_duplicate; fresh BuildPaste JAR conversion and Java 25 Gradle build succeeded with no missing resources.",
+  "runtime": "not-tested",
+  "scope": "Resource layout and build metadata only; not gameplay semantics."
+}

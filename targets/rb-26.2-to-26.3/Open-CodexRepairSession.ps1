@@ -45,7 +45,7 @@ foreach ($directory in @((Join-Path $PSScriptRoot 'knowledge/solved-cases'), $ca
 $evidence = @($manifestPath, $primerPath)
 $sharedPrimer = Join-Path $GokuRoot $profile.shared_primer_directory
 $officialPrimer = Join-Path $PSScriptRoot 'knowledge/Official-Primer-26.2-to-26.3.md'
-foreach ($name in @('Official-Primer-26.2-to-26.3.md','official-primer-source.json','build-toolchain.md')) {
+foreach ($name in @('Official-Primer-26.2-to-26.3.md','official-primer-source.json','build-toolchain.md','api-review-rules.json','supplementary-sources.json','dependency-cache.md')) {
     $path = Join-Path $sharedPrimer $name
     if (-not (Test-Path -LiteralPath $path)) { $path = Join-Path $PSScriptRoot ('knowledge/' + $name) }
     if (Test-Path -LiteralPath $path) {
@@ -56,10 +56,12 @@ foreach ($name in @('Official-Primer-26.2-to-26.3.md','official-primer-source.js
 foreach ($name in @('Build-WithDestinationJava.ps1','lib/Convert-RB262To263.ps1','legacy-pipeline/Convert-Forge1201-ToNeoForge262.ps1')) {
     $evidence += Join-Path $PSScriptRoot $name
 }
-foreach ($name in @('SOURCE_PROFILE.json','MIGRATION_EVIDENCE.md','MIGRATION_EVIDENCE.json','COMPILE_REPORT.md','compile-errors.log','gradle.properties','build.gradle','build.gradle.kts','settings.gradle','settings.gradle.kts','gradle/wrapper/gradle-wrapper.properties','gradle/libs.versions.toml','AGENTS.md')) {
+foreach ($name in @('dependency-detection.json','dependency-resolution.json','DEPENDENCIES-26.3.md','RESOURCE_PRESERVATION.json','API_REVIEW-26.3.json','rb-dependencies.gradle','SOURCE_PROFILE.json','MIGRATION_EVIDENCE.md','MIGRATION_EVIDENCE.json','COMPILE_REPORT.md','compile-errors.log','gradle.properties','build.gradle','build.gradle.kts','settings.gradle','settings.gradle.kts','gradle/wrapper/gradle-wrapper.properties','gradle/libs.versions.toml','AGENTS.md')) {
     $path = Join-Path $failed $name
     if (Test-Path -LiteralPath $path) { $evidence += $path }
 }
+$dependencyIndex = Join-Path $GokuRoot 'Data/Mod_Dependencies/dependency-index.json'
+if (Test-Path -LiteralPath $dependencyIndex) { $evidence += $dependencyIndex }
 $sources = Join-Path $GokuRoot $profile.exact_sources_directory
 $artifacts = Join-Path $failed 'build/moddev/artifacts'
 $packetRoot = Join-Path $failed ('.gokuai/issues/repair-262-263-' + [guid]::NewGuid().ToString('N'))
@@ -118,6 +120,14 @@ use AST edits for Java/Gradle structure when deterministic rules are insufficien
 Do not use the legacy 26.2-only repair skill or older target API fixes for this 26.3 target.
 If exact sources are missing, retrieve the exact pinned sources before API claims.
 Preserve modId and resource namespaces. Preserve gameplay, resources, dependencies and behavior.
+Read dependency-resolution.json and RESOURCE_PRESERVATION.json when present.
+Use the shared Data/Mod_Dependencies index; 26.2 cache entries are source evidence
+only. Resolve missing 26.3 releases or report blockers. Do not delete dependencies,
+resources or Java behavior to make compilation succeed. Rerun Resolve-Dependencies.ps1
+using the manifest source_path after changing verified project mappings.
+API_REVIEW-26.3.json contains review triggers, not proven replacements or solved cases.
+Promote runtime fixes only with exact version, failure evidence, changed files,
+validation commands/results and a regression check in the dedicated hardened fixes.
 Do not launch GPU workers automatically. Codex owns integration and validation.
 Escalate hard/repeated failures using the configured fallback route recorded in request.json.
 Run the recorded build command; it automatically retains successful build cases.
