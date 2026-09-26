@@ -96,6 +96,13 @@ public sealed class MainForm : Form
                 return;
             }
 
+            if (!Directory.Exists(_output.Text))
+            {
+                _status.Text = "Conversion did not create the requested output folder; build was not started.";
+                _log.AppendText(Environment.NewLine + Environment.NewLine + "The target rejected the input or returned without producing an output project.");
+                return;
+            }
+
             if (_build.Checked)
             {
                 _status.Text = "Conversion completed; running Gradle build…";
@@ -118,6 +125,8 @@ public sealed class MainForm : Form
 
     private static async Task<(int ExitCode, string Output, string Error)> RunGradleBuildAsync(string outputPath)
     {
+        if (!Directory.Exists(outputPath))
+            return (-2, $"Build not started: output directory does not exist: {outputPath}", "");
         var buildScript = Path.Combine(AppContext.BaseDirectory, "tools", "rb-26.2-to-26.3", "Build-WithDestinationJava.ps1");
         if (!File.Exists(buildScript))
             return (-2, "Build not started: the packaged destination-Java build helper is missing.", "");
