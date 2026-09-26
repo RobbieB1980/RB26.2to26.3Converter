@@ -66,6 +66,28 @@ function Convert-NoiseSettings($Json, [System.Collections.Generic.List[string]]$
     }
 }
 
+function Disable-NeoFormRecompilation([string]$Root) {
+    $build = Join-Path $Root 'build.gradle'
+    if (-not (Test-Path -LiteralPath $build)) { return $false }
+    $text = Get-Content -LiteralPath $build -Raw
+    $updated = [regex]::Replace($text, '(?m)(^\s*neoForge\s*\{\s*\r?\n)\s*version\s*=\s*project\.neo_version', { param($m) $m.Groups[1].Value + "    enable {`r`n        version = project.neo_version`r`n        disableRecompilation = true`r`n    }" })
+    if ($updated -eq $text) { return $false }
+    Set-Content -LiteralPath $build -Value $updated -Encoding UTF8
+    return $true
+}
+
+function Normalize-JavaSources([string]$Root) {
+    $count = 0
+    foreach ($file in Get-ChildItem -LiteralPath $Root -Recurse -File -Filter '*.java' -ErrorAction SilentlyContinue) {
+        $bytes = [IO.File]::ReadAllBytes($file.FullName)
+        if ($bytes.Length -ge 3 -and $bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF) {
+            [IO.File]::WriteAllBytes($file.FullName, $bytes[3..($bytes.Length - 1)])
+            $count++
+        }
+    }
+    return $count
+}
+
 function Invoke-RB262To263 {
     [CmdletBinding()]
     param(
@@ -110,6 +132,9 @@ function Invoke-RB262To263 {
     foreach ($file in Get-ChildItem -LiteralPath $outputFull -Recurse -File -Include '*.properties','*.gradle','*.gradle.kts','mods.toml','*.toml') {
         if (Update-TextVersionMarkers $file.FullName $NeoVersion) { $changed.Add($file.FullName.Substring($outputFull.Length + 1)) }
     }
+    if (Disable-NeoFormRecompilation $outputFull) { $changed.Add('build.gradle (disable NeoForm recompilation)') }
+    $bomCount = Normalize-JavaSources $outputFull
+    if ($bomCount -gt 0) { $changed.Add("Java source BOM normalization ($bomCount files)") }
     foreach ($file in Get-ChildItem -LiteralPath $outputFull -Recurse -File -Filter 'pack.mcmeta') {
         $json = Read-JsonFile $file.FullName
         $hasData = Test-Path -LiteralPath (Join-Path (Split-Path $file.FullName) 'data')
