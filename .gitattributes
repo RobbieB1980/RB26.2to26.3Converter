@@ -1,0 +1,2 @@
+# Keep the licensed upstream snapshot byte-identical to its recorded checksum.
+targets/rb-26.2-to-26.3/knowledge/Official-Primer-26.2-to-26.3.md -text -whitespace

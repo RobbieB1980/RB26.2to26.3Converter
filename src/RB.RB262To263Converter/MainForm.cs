@@ -893,9 +893,7 @@ public sealed class MainForm : Form
         }
 
         const string gokuRoot = @"C:\GokuCodexAI";
-        var packagedLauncher = Path.Combine(AppContext.BaseDirectory, "tools", "Open-CodexRepairSession.ps1");
-        var adjacentLauncher = Path.Combine(AppContext.BaseDirectory, "Open-CodexRepairSession.ps1");
-        var launcher = File.Exists(packagedLauncher) ? packagedLauncher : adjacentLauncher;
+        var launcher = Path.Combine(ResolveToolsRoot(), "Open-CodexRepairSession.ps1");
         if (!File.Exists(launcher))
         {
             MessageBox.Show(this,
@@ -919,15 +917,28 @@ public sealed class MainForm : Form
                 " -FailedOutput " + Quote(output) +
                 " -GokuRoot " + Quote(gokuRoot);
 
-            Process.Start(new ProcessStartInfo
+            var repair = new Process { StartInfo = new ProcessStartInfo
             {
                 FileName = "powershell.exe",
                 Arguments = args,
-                UseShellExecute = true,
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true,
                 WorkingDirectory = output
-            });
-
-            AppendLog("Opened the GokuCodexAI repair preparation.", Color.LightSkyBlue);
+            }, EnableRaisingEvents = true };
+            repair.OutputDataReceived += (_, e) => { if (e.Data is not null) AppendLog(e.Data, Color.LightSkyBlue); };
+            repair.ErrorDataReceived += (_, e) => { if (e.Data is not null) AppendLog(e.Data, Color.Salmon); };
+            repair.Exited += (_, _) =>
+            {
+                repair.WaitForExit();
+                AppendLog(repair.ExitCode == 0 ? "26.2 -> 26.3 repair handoff completed." : $"Repair handoff failed (exit {repair.ExitCode}); see diagnostics above.", repair.ExitCode == 0 ? Color.LightGreen : Color.Salmon);
+                repair.Dispose();
+            };
+            repair.Start();
+            repair.BeginOutputReadLine();
+            repair.BeginErrorReadLine();
+            AppendLog("Preparing dedicated 26.2 -> 26.3 repair evidence...", Color.LightSkyBlue);
             AppendLog("Failed output: " + output, Color.DimGray);
         }
         catch (Exception ex)

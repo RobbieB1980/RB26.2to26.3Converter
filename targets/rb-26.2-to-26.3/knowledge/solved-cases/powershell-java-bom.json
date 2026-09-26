@@ -1,0 +1,13 @@
+{
+  "id": "powershell51-api-writer-bom",
+  "source_minecraft": "26.2",
+  "target_minecraft": "26.3",
+  "neo_version": "26.3.0.7-beta",
+  "failure_pattern": "illegal character:.*(?:ufeff|FEFF)",
+  "status": "build-verified",
+  "diagnosis": "API rewrites ran after BOM normalization and Set-Content -Encoding UTF8 reintroduced BOMs on Windows PowerShell 5.1.",
+  "repair": "Use explicit UTF8Encoding(false) when writing generated Java; read using File.ReadAllText to preserve Unicode.",
+  "validation": "Fresh BuildPaste 3.0.2 JAR conversion under Windows PowerShell 5.1: 77 BOM-free Java files; Java 25 Gradle build exit 0. Regression test scripts/Test-JavaEncoding.ps1 passes on PowerShell 5.1 and 7.",
+  "runtime": "not-tested",
+  "scope": "Encoding only. No gameplay/API semantics validated by this case."
+}

@@ -1,0 +1,11 @@
+{
+  "source": "https://raw.githubusercontent.com/neoforged/.github/6ea2bbb8a41175f00debbb8668a56abe95f73e04/primers/26.3/index.md",
+  "upstream_commit": "6ea2bbb8a41175f00debbb8668a56abe95f73e04",
+  "source_minecraft": "26.2",
+  "target_minecraft": "26.3",
+  "retrieved_utc": "2026-09-26T04:12:24.2399181Z",
+  "sha256": "B58B6DB8B238B557B514698D3F695DF60947F362FCC688DE866A0F97300179D1",
+  "license": "CC-BY-4.0",
+  "license_url": "https://creativecommons.org/licenses/by/4.0/",
+  "attribution": "NeoForged primer authors; attribution and credits retained in the original document"
+}

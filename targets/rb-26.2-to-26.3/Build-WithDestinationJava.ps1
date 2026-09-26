@@ -42,4 +42,8 @@ Write-Host "Log: $(Join-Path $ProjectRoot $LogFileName)"
     "- Result: $(if ($exitCode -eq 0) { 'Gradle build succeeded' } else { 'Gradle build needs follow-up' })",
     "- Log: $LogFileName"
 ) | Set-Content (Join-Path $ProjectRoot 'COMPILE_REPORT.md') -Encoding UTF8
+if ($exitCode -eq 0) {
+    try { & (Join-Path $PSScriptRoot 'Save-ConversionCase.ps1') -ProjectRoot $ProjectRoot -ExitCode $exitCode -Tasks $Tasks -LogFileName $LogFileName }
+    catch { Write-Warning "Build succeeded but case retention failed: $($_.Exception.Message)" }
+}
 exit $exitCode
