@@ -567,6 +567,7 @@ public sealed class MainForm : Form
         var baseDir = AppContext.BaseDirectory;
         var candidates = new[]
         {
+            Path.Combine(baseDir, "tools", "rb-26.2-to-26.3"),
             Path.Combine(baseDir, "tools"),
             baseDir,
             Path.GetFullPath(Path.Combine(baseDir, "..", "..", "..", ".."))
