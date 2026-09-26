@@ -98,8 +98,13 @@ public sealed class MainForm : Form
 
             if (!Directory.Exists(_output.Text))
             {
-                _status.Text = "Conversion did not create the requested output folder; build was not started.";
-                _log.AppendText(Environment.NewLine + Environment.NewLine + "The target rejected the input or returned without producing an output project.");
+                var reason = ExtractRejectionReason(stdout);
+                _status.Text = string.IsNullOrWhiteSpace(reason)
+                    ? "Conversion did not create the requested output folder; build was not started."
+                    : "Input rejected: " + reason;
+                _log.AppendText(Environment.NewLine + Environment.NewLine + (string.IsNullOrWhiteSpace(reason)
+                    ? "The target returned without producing an output project."
+                    : "Rejection reason: " + reason));
                 return;
             }
 
@@ -150,6 +155,12 @@ public sealed class MainForm : Form
         var error = await process.StandardError.ReadToEndAsync();
         await process.WaitForExitAsync();
         return (process.ExitCode, output, error);
+    }
+
+    private static string? ExtractRejectionReason(string output)
+    {
+        var match = System.Text.RegularExpressions.Regex.Match(output ?? "", "\\\"Reason\\\"\\s*:\\s*\\\"(?<reason>[^\\\"]+)\\\"");
+        return match.Success ? match.Groups["reason"].Value : null;
     }
 
 }
