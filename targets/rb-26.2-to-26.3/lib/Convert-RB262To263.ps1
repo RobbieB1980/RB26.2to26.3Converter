@@ -88,6 +88,29 @@ function Normalize-JavaSources([string]$Root) {
     return $count
 }
 
+function Update-Java26x3Apis([string]$Root) {
+    $count = 0
+    foreach ($file in Get-ChildItem -LiteralPath $Root -Recurse -File -Filter '*.java' -ErrorAction SilentlyContinue) {
+        $text = Get-Content -LiteralPath $file.FullName -Raw
+        $updated = $text
+        $updated = [regex]::Replace($updated, 'player\.swing\(InteractionHand\.MAIN_HAND\);', 'player.swing(InteractionHand.MAIN_HAND, net.minecraft.world.item.component.SwingAnimation.DEFAULT, true);')
+        $updated = [regex]::Replace($updated, 'clearOrCountMatchingItems\(itemPredicate, maxCount, serverplayer\.inventoryMenu\.getCraftSlots\(\)\)', 'clearOrCountMatchingItems(itemPredicate, false, maxCount, serverplayer.inventoryMenu.getCraftSlots())')
+        $updated = [regex]::Replace($updated, 'HashMap var12 = new HashMap\(\);', 'Map<String, Integer> var12 = new HashMap<>();')
+        $updated = [regex]::Replace($updated, 'to\.setValue\(sharedProperty\.targetProperty\(\), value\)', 'to.setValue((net.minecraft.world.level.block.state.properties.Property)sharedProperty.targetProperty(), value)')
+        if ($updated -match 'Util\.getPlatform\(\)\.openUri\(([^;]+)\);') {
+            if ($updated -notmatch 'import java\.awt\.Desktop;') {
+                $updated = $updated -replace '(?m)^import net\.minecraft\.util\.Util;\r?$', "import net.minecraft.util.Util;`r`nimport java.awt.Desktop;`r`nimport java.net.URI;"
+            }
+            $updated = [regex]::Replace($updated, 'Util\.getPlatform\(\)\.openUri\(([^;]+)\);', 'if (Desktop.isDesktopSupported()) { try { Desktop.getDesktop().browse(URI.create($1)); } catch (java.io.IOException ignored) { } }')
+        }
+        if ($updated -ne $text) {
+            Set-Content -LiteralPath $file.FullName -Value $updated -Encoding UTF8
+            $count++
+        }
+    }
+    return $count
+}
+
 function Invoke-RB262To263 {
     [CmdletBinding()]
     param(
@@ -135,6 +158,8 @@ function Invoke-RB262To263 {
     if (Disable-NeoFormRecompilation $outputFull) { $changed.Add('build.gradle (disable NeoForm recompilation)') }
     $bomCount = Normalize-JavaSources $outputFull
     if ($bomCount -gt 0) { $changed.Add("Java source BOM normalization ($bomCount files)") }
+    $apiCount = Update-Java26x3Apis $outputFull
+    if ($apiCount -gt 0) { $changed.Add("Java 26.3 API compatibility transforms ($apiCount files)") }
     foreach ($file in Get-ChildItem -LiteralPath $outputFull -Recurse -File -Filter 'pack.mcmeta') {
         $json = Read-JsonFile $file.FullName
         $hasData = Test-Path -LiteralPath (Join-Path (Split-Path $file.FullName) 'data')
