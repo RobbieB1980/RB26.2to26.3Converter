@@ -118,11 +118,10 @@ public sealed class MainForm : Form
 
     private static async Task<(int ExitCode, string Output, string Error)> RunGradleBuildAsync(string outputPath)
     {
-        var wrapper = Path.Combine(outputPath, OperatingSystem.IsWindows() ? "gradlew.bat" : "gradlew");
-        if (!File.Exists(wrapper))
-            return (-2, "No Gradle wrapper (gradlew.bat) was found in the converted project.", "");
-
-        var psi = new ProcessStartInfo("cmd.exe")
+        var buildScript = Path.Combine(AppContext.BaseDirectory, "tools", "rb-26.2-to-26.3", "Build-WithDestinationJava.ps1");
+        if (!File.Exists(buildScript))
+            return (-2, "Build not started: the packaged destination-Java build helper is missing.", "");
+        var psi = new ProcessStartInfo("powershell.exe")
         {
             UseShellExecute = false,
             RedirectStandardOutput = true,
@@ -130,17 +129,13 @@ public sealed class MainForm : Form
             CreateNoWindow = true,
             WorkingDirectory = outputPath
         };
-        psi.ArgumentList.Add("/d");
-        psi.ArgumentList.Add("/c");
-        psi.ArgumentList.Add("gradlew.bat");
-        psi.ArgumentList.Add("build");
-        psi.ArgumentList.Add("--no-daemon");
-        var java25 = FindJava25Home();
-        if (!string.IsNullOrWhiteSpace(java25))
-        {
-            psi.Environment["JAVA_HOME"] = java25;
-            psi.Environment["PATH"] = Path.Combine(java25, "bin") + Path.PathSeparator + (Environment.GetEnvironmentVariable("PATH") ?? "");
-        }
+        psi.ArgumentList.Add("-NoProfile");
+        psi.ArgumentList.Add("-ExecutionPolicy");
+        psi.ArgumentList.Add("Bypass");
+        psi.ArgumentList.Add("-File");
+        psi.ArgumentList.Add(buildScript);
+        psi.ArgumentList.Add("-ProjectRoot");
+        psi.ArgumentList.Add(outputPath);
         using var process = Process.Start(psi) ?? throw new InvalidOperationException("Could not start Gradle wrapper.");
         var output = await process.StandardOutput.ReadToEndAsync();
         var error = await process.StandardError.ReadToEndAsync();
@@ -148,12 +143,4 @@ public sealed class MainForm : Form
         return (process.ExitCode, output, error);
     }
 
-    private static string? FindJava25Home()
-    {
-        var adoptium = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Eclipse Adoptium");
-        if (!Directory.Exists(adoptium)) return null;
-        return Directory.EnumerateDirectories(adoptium, "jdk-25*", SearchOption.TopDirectoryOnly)
-            .OrderByDescending(path => path, StringComparer.OrdinalIgnoreCase)
-            .FirstOrDefault(path => File.Exists(Path.Combine(path, "bin", "java.exe")));
-    }
 }
