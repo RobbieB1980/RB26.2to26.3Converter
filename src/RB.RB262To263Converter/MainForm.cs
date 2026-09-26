@@ -88,8 +88,7 @@ public sealed class MainForm : Form
             psi.ArgumentList.Add("-NoProfile"); psi.ArgumentList.Add("-ExecutionPolicy"); psi.ArgumentList.Add("Bypass"); psi.ArgumentList.Add("-File"); psi.ArgumentList.Add(script);
             psi.ArgumentList.Add("-InputPath"); psi.ArgumentList.Add(_input.Text); psi.ArgumentList.Add("-OutputPath"); psi.ArgumentList.Add(_output.Text); psi.ArgumentList.Add("-NeoVersion"); psi.ArgumentList.Add(_neo.Text);
             using var process = Process.Start(psi) ?? throw new InvalidOperationException("Could not start PowerShell.");
-            var stdout = await process.StandardOutput.ReadToEndAsync(); var stderr = await process.StandardError.ReadToEndAsync(); await process.WaitForExitAsync();
-            _log.Text = stdout + (string.IsNullOrWhiteSpace(stderr) ? "" : Environment.NewLine + stderr);
+            var (stdout, stderr) = await CaptureProcessOutputAsync(process, line => AppendLogLine(line));
             if (process.ExitCode != 0)
             {
                 _status.Text = $"Conversion failed with exit code {process.ExitCode}.";
@@ -111,10 +110,9 @@ public sealed class MainForm : Form
             if (_build.Checked)
             {
                 _status.Text = "Conversion completed; running Gradle build…";
-                var buildResult = await RunGradleBuildAsync(_output.Text);
-                _log.AppendText(Environment.NewLine + Environment.NewLine + "===== GRADLE BUILD =====" + Environment.NewLine + buildResult.Output);
-                if (!string.IsNullOrWhiteSpace(buildResult.Error))
-                    _log.AppendText(Environment.NewLine + buildResult.Error);
+                AppendLogLine("");
+                AppendLogLine("===== GRADLE BUILD =====");
+                var buildResult = await RunGradleBuildAsync(_output.Text, line => AppendLogLine(line));
                 _status.Text = buildResult.ExitCode == 0
                     ? "Conversion and Gradle build completed; inspect MIGRATION_EVIDENCE.md."
                     : buildResult.ExitCode == 2
@@ -130,7 +128,7 @@ public sealed class MainForm : Form
         finally { _run.Enabled = true; }
     }
 
-    private static async Task<(int ExitCode, string Output, string Error)> RunGradleBuildAsync(string outputPath)
+    private async Task<(int ExitCode, string Output, string Error)> RunGradleBuildAsync(string outputPath, Action<string> writeLine)
     {
         if (!Directory.Exists(outputPath))
             return (-2, $"Build not started: output directory does not exist: {outputPath}", "");
@@ -153,10 +151,40 @@ public sealed class MainForm : Form
         psi.ArgumentList.Add("-ProjectRoot");
         psi.ArgumentList.Add(outputPath);
         using var process = Process.Start(psi) ?? throw new InvalidOperationException("Could not start Gradle wrapper.");
-        var output = await process.StandardOutput.ReadToEndAsync();
-        var error = await process.StandardError.ReadToEndAsync();
-        await process.WaitForExitAsync();
+        var (output, error) = await CaptureProcessOutputAsync(process, writeLine);
         return (process.ExitCode, output, error);
+    }
+
+    private static async Task<(string Output, string Error)> CaptureProcessOutputAsync(Process process, Action<string> writeLine)
+    {
+        var stdout = new StringBuilder();
+        var stderr = new StringBuilder();
+        async Task ReadLinesAsync(StreamReader reader, StringBuilder capture, bool isError)
+        {
+            while (await reader.ReadLineAsync() is { } line)
+            {
+                capture.AppendLine(line);
+                writeLine(isError ? "[stderr] " + line : line);
+            }
+        }
+
+        await Task.WhenAll(
+            ReadLinesAsync(process.StandardOutput, stdout, false),
+            ReadLinesAsync(process.StandardError, stderr, true));
+        await process.WaitForExitAsync();
+        return (stdout.ToString(), stderr.ToString());
+    }
+
+    private void AppendLogLine(string line)
+    {
+        if (InvokeRequired)
+        {
+            BeginInvoke(() => AppendLogLine(line));
+            return;
+        }
+        _log.AppendText(line + Environment.NewLine);
+        _log.SelectionStart = _log.TextLength;
+        _log.ScrollToCaret();
     }
 
     private static string? ExtractRejectionReason(string output)
