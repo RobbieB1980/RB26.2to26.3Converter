@@ -151,7 +151,7 @@ public sealed class MainForm : Form
         };
         versions.Controls.Add(LabeledField("Minecraft", _txtMc, 90, "26.2"));
         versions.Controls.Add(LabeledField("NeoForge", _txtNeo, 170, "neoforge-26.3.0.7-beta"));
-        versions.Controls.Add(LabeledField("GeckoLib", _txtGecko, 90, "5.5.3"));
+        versions.Controls.Add(LabeledField("GeckoLib", _txtGecko, 210, "geckolib-neoforge-26.3-5.5.7"));
 
         var options = new FlowLayoutPanel
         {
@@ -199,8 +199,8 @@ public sealed class MainForm : Form
         };
         actions.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 130f));
         actions.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 130f));
-        actions.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 130f));
-        actions.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 120f));
+        actions.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 210f));
+        actions.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 110f));
         actions.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
         actions.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
 
@@ -643,7 +643,7 @@ public sealed class MainForm : Form
         var outputPath = _txtOutput.Text.Trim();
         var neo = string.IsNullOrWhiteSpace(_txtNeo.Text) ? "neoforge-26.3.0.7-beta" : _txtNeo.Text.Trim();
         var mc = string.IsNullOrWhiteSpace(_txtMc.Text) ? "26.2" : _txtMc.Text.Trim();
-        var gecko = string.IsNullOrWhiteSpace(_txtGecko.Text) ? "5.5.3" : _txtGecko.Text.Trim();
+        var gecko = string.IsNullOrWhiteSpace(_txtGecko.Text) ? "geckolib-neoforge-26.3-5.5.7" : _txtGecko.Text.Trim();
         var jarMode = _radJar.Checked;
 
         if (string.IsNullOrWhiteSpace(inputPath))
@@ -814,6 +814,7 @@ public sealed class MainForm : Form
                 if (scaffoldOk)
                 {
                     AppendLog("The conversion scaffold was preserved for repair.", Color.Gold);
+                    AppendLog("Repair evidence: compile-errors.log, COMPILE_REPORT.md, conversion-manifest.json, and MIGRATION_EVIDENCE.md", Color.Khaki);
                     _btnOpenOut.Enabled = true;
                     _btnRepairGokuCodexAI.Enabled = true;
                     if (File.Exists(Path.Combine(_lastOutput, "compile-errors.log")))
@@ -884,7 +885,7 @@ public sealed class MainForm : Form
             var ask = MessageBox.Show(this,
                 "Conversion failed but a scaffold was written.\n\n" +
                 "Open GokuCodexAI to repair it?\n" +
-                "Codex will receive the conversion evidence, native vNext skill, Solutions Index, and exact 26.2 knowledge before fresh reasoning.",
+                "Codex will receive the conversion evidence, native vNext skill, Solutions Index, and exact 26.2-to-26.3 knowledge before fresh reasoning.",
                 "Repair with GokuCodexAI",
                 MessageBoxButtons.YesNo,
                 MessageBoxIcon.Question);
@@ -899,7 +900,7 @@ public sealed class MainForm : Form
         {
             MessageBox.Show(this,
                 "Open-CodexRepairSession.ps1 was not found in the installed converter tools.\n\n" +
-                "Reinstall or update LegacyJavaConverter 3.0.0.",
+                "Reinstall or update RB 26.2 to 26.3 Converter.",
                 "Repair with GokuCodexAI", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             return;
         }
