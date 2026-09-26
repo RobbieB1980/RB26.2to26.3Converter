@@ -24,7 +24,9 @@ try {
     try {
         # Tee keeps the complete diagnostic log while forwarding Gradle output
         # line-by-line to the GUI process.
-        & cmd /c ("gradlew.bat {0}" -f $Tasks) 2>&1 | Tee-Object -FilePath $LogFileName
+        # Merge stderr in cmd so Windows PowerShell does not turn javac
+        # diagnostics into terminating NativeCommandError records.
+        & cmd /c ("gradlew.bat {0} --console=plain 2>&1" -f $Tasks) | Tee-Object -FilePath $LogFileName
         $exitCode = $LASTEXITCODE
     }
     finally { Pop-Location }

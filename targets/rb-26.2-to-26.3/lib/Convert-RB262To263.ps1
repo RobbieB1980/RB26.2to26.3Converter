@@ -117,7 +117,7 @@ function Normalize-TextBoms([string]$Root) {
 function Update-Java26x3Apis([string]$Root) {
     $count = 0
     foreach ($file in Get-ChildItem -LiteralPath $Root -Recurse -File -Filter '*.java' -ErrorAction SilentlyContinue) {
-        $text = Get-Content -LiteralPath $file.FullName -Raw
+        $text = [IO.File]::ReadAllText($file.FullName)
         $updated = $text
         $updated = [regex]::Replace($updated, 'player\.swing\(InteractionHand\.MAIN_HAND\);', 'player.swing(InteractionHand.MAIN_HAND, net.minecraft.world.item.component.SwingAnimation.DEFAULT, true);')
         $updated = [regex]::Replace($updated, 'clearOrCountMatchingItems\(itemPredicate, maxCount, serverplayer\.inventoryMenu\.getCraftSlots\(\)\)', 'clearOrCountMatchingItems(itemPredicate, false, maxCount, serverplayer.inventoryMenu.getCraftSlots())')
@@ -130,7 +130,7 @@ function Update-Java26x3Apis([string]$Root) {
             $updated = [regex]::Replace($updated, 'Util\.getPlatform\(\)\.openUri\(([^;]+)\);', 'if (Desktop.isDesktopSupported()) { try { Desktop.getDesktop().browse(URI.create($1)); } catch (java.io.IOException ignored) { } }')
         }
         if ($updated -ne $text) {
-            Set-Content -LiteralPath $file.FullName -Value $updated -Encoding UTF8
+            [IO.File]::WriteAllText($file.FullName, $updated, [Text.UTF8Encoding]::new($false))
             $count++
         }
     }
