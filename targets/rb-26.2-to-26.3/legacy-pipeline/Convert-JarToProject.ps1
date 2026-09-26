@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
   Decompile a finished Minecraft mod .jar into a source project folder.
 
@@ -203,7 +203,7 @@ if (-not [IO.Path]::IsPathRooted($OutputPath)) {
 $OutputPath = [IO.Path]::GetFullPath($OutputPath)
 
 Write-Host ''
-Write-Host 'RB Legacy JAR Decompiler - finished .jar -> source project' -ForegroundColor White
+Write-Host 'RB 26.2 to 26.3 JAR Decompiler - finished .jar -> source project' -ForegroundColor White
 Write-Host "  Jar    : $JarPath"
 Write-Host "  Output : $OutputPath"
 Write-Host "  Engine : Vineflower $VineflowerVersion"
@@ -355,7 +355,7 @@ try {
         "Generated: $(Get-Date -Format 'yyyy-MM-dd HH:mm')"
         ""
         "This folder was produced by Convert-JarToProject.ps1 (Vineflower)."
-        "It is NOT original source code. Use RB Legacy Java Converter for NeoForge 26.2 scaffolding."
+        "It is NOT original source code. Use RB 26.2 to 26.3 Converter for NeoForge 26.2 scaffolding."
         ""
         "## Next step"
         ""
@@ -455,3 +455,4 @@ finally {
         try { Remove-Item $work -Recurse -Force -ErrorAction SilentlyContinue } catch { }
     }
 }
+

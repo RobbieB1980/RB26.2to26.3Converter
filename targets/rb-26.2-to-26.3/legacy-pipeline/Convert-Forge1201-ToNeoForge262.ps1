@@ -4136,7 +4136,7 @@ if (-not [IO.Path]::IsPathRooted($OutputPath)) {
 $OutputPath = [IO.Path]::GetFullPath($OutputPath)
 
 Write-Host ''
-Write-Host 'Legacy Java Converter - Forge 1.20.1 -> NeoForge 26.2 (EXPERIMENTAL)' -ForegroundColor White
+Write-Host 'RB 26.2 to 26.3 Converter - intermediate NeoForge 26.2 scaffold' -ForegroundColor White
 Write-Host "  Source : $Source"
 Write-Host "  Output : $OutputPath"
 Write-Host "  Target : Minecraft $MinecraftVersion / NeoForge $NeoVersion"
@@ -4522,3 +4522,4 @@ exit 0
 if ($env:LEGACY_CONVERTER_LOAD_ONLY -ne '1') {
     Invoke-LegacyConversionMain
 }
+

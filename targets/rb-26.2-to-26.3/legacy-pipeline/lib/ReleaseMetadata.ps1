@@ -10,6 +10,7 @@ function Get-ReleaseIdentity {
     return [pscustomobject]@{
         Version = $version
         Tag = "v$version"
-        Name = "RB Legacy Java Converter $version"
+        Name = "RB 26.2 to 26.3 Converter $version"
     }
 }
+
