@@ -21,7 +21,12 @@ try {
     $env:JAVA_HOME = $javaHome
     $env:PATH = (Join-Path $javaHome 'bin') + [IO.Path]::PathSeparator + $oldPath
     Push-Location $ProjectRoot
-    try { cmd /c ("gradlew.bat {0} > `"{1}`" 2>&1" -f $Tasks, $LogFileName); $exitCode = $LASTEXITCODE }
+    try {
+        # Tee keeps the complete diagnostic log while forwarding Gradle output
+        # line-by-line to the GUI process.
+        & cmd /c ("gradlew.bat {0}" -f $Tasks) 2>&1 | Tee-Object -FilePath $LogFileName
+        $exitCode = $LASTEXITCODE
+    }
     finally { Pop-Location }
 }
 finally { $env:JAVA_HOME = $oldHome; $env:PATH = $oldPath }

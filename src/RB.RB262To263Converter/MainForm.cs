@@ -5,45 +5,67 @@ namespace RB.RB262To263Converter;
 
 public sealed class MainForm : Form
 {
-    private readonly TextBox _input = new() { Dock = DockStyle.Fill };
-    private readonly TextBox _output = new() { Dock = DockStyle.Fill };
-    private readonly TextBox _neo = new() { Text = "neoforge-26.3.0.7-beta", Dock = DockStyle.Fill };
-    private readonly TextBox _log = new() { Multiline = true, ReadOnly = true, ScrollBars = ScrollBars.Vertical, Dock = DockStyle.Fill };
-    private readonly Button _run = new() { Text = "Convert 26.2 → 26.3", AutoSize = true };
-    private readonly CheckBox _build = new() { Text = "Run Gradle build after conversion", Checked = true, AutoSize = true };
-    private readonly Label _status = new() { Text = "Preview target: exact NeoForge 26.2 input → NeoForge 26.3 output", AutoSize = true, ForeColor = Color.DarkGoldenrod };
+    private readonly TextBox _input = NewTextBox();
+    private readonly TextBox _output = NewTextBox();
+    private readonly TextBox _neo = NewTextBox("neoforge-26.3.0.7-beta");
+    private readonly RichTextBox _log = new() { Multiline = true, ReadOnly = true, ScrollBars = RichTextBoxScrollBars.Vertical, Dock = DockStyle.Fill };
+    private readonly Button _run = NewButton("Convert", 150);
+    private readonly Button _openOutput = NewButton("Open output", 130);
+    private readonly Button _clearLog = NewButton("Clear log", 110);
+    private readonly CheckBox _build = NewCheck("Compile after convert (build must succeed)", true);
+    private readonly ProgressBar _progress = new() { Style = ProgressBarStyle.Continuous, Height = 22, Dock = DockStyle.Fill };
+    private readonly Label _status = new() { Text = "Experimental. Original input is never modified.", AutoSize = true, ForeColor = Color.FromArgb(140, 200, 140) };
 
     public MainForm()
     {
-        Text = "RB 26.2 → 26.3 Converter Preview";
-        Width = 920;
-        Height = 650;
+        Text = "RB 26.2 → 26.3 Converter";
+        Width = 980;
+        Height = 760;
+        MinimumSize = new Size(840, 640);
         StartPosition = FormStartPosition.CenterScreen;
-        var layout = new TableLayoutPanel { Dock = DockStyle.Fill, Padding = new Padding(14), ColumnCount = 4, RowCount = 7 };
+        BackColor = Color.FromArgb(32, 34, 40);
+        ForeColor = Color.Gainsboro;
+        Font = new Font("Segoe UI", 9.5f);
+        Padding = new Padding(12);
+        _log.BackColor = Color.FromArgb(24, 26, 31);
+        _log.ForeColor = Color.Gainsboro;
+        _log.BorderStyle = BorderStyle.FixedSingle;
+        _build.ForeColor = Color.Gainsboro;
+        _run.BackColor = Color.FromArgb(46, 120, 80);
+        _run.FlatAppearance.BorderColor = Color.FromArgb(70, 160, 100);
+        _run.Font = new Font("Segoe UI Semibold", 10f);
+        var layout = new TableLayoutPanel { Dock = DockStyle.Fill, Padding = new Padding(0), ColumnCount = 4, RowCount = 10 };
         layout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 140));
         layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
         layout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 82));
         layout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 82));
+        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 40));
+        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 40));
+        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 40));
+        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 34));
         layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 42));
         layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 42));
-        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 42));
-        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 42));
-        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 52));
+        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 34));
+        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 34));
         layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 32));
         layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-        layout.Controls.Add(new Label { Text = "Input 26.2 project", AutoSize = true, Anchor = AnchorStyles.Left }, 0, 0);
-        layout.Controls.Add(_input, 1, 0); layout.Controls.Add(CreateFolderBrowse(_input), 2, 0); layout.Controls.Add(CreateJarBrowse(_input), 3, 0);
-        layout.Controls.Add(new Label { Text = "Output 26.3 project", AutoSize = true, Anchor = AnchorStyles.Left }, 0, 1);
-        layout.Controls.Add(_output, 1, 1); layout.SetColumnSpan(_output, 2); layout.Controls.Add(CreateFolderBrowse(_output), 3, 1);
-        layout.Controls.Add(new Label { Text = "NeoForge 26.3 pin", AutoSize = true, Anchor = AnchorStyles.Left }, 0, 2);
-        layout.Controls.Add(_neo, 1, 2);
-        layout.Controls.Add(new Label { Text = "Required until the official stable 26.3 artifact is pinned.", AutoSize = true, ForeColor = Color.DimGray, Anchor = AnchorStyles.Left }, 1, 3);
-        layout.SetColumnSpan(_status, 4); layout.Controls.Add(_status, 0, 3);
-        layout.SetColumnSpan(_run, 4); layout.Controls.Add(_run, 0, 4);
-        layout.SetColumnSpan(_build, 4); layout.Controls.Add(_build, 0, 5);
-        layout.SetColumnSpan(_log, 4); layout.Controls.Add(_log, 0, 6);
+        var header = new Label { Text = "RB 26.2 → 26.3 Converter", Font = new Font("Segoe UI Semibold", 12f), ForeColor = Color.White, AutoSize = true, Anchor = AnchorStyles.Left };
+        layout.Controls.Add(header, 0, 0); layout.SetColumnSpan(header, 4);
+        layout.Controls.Add(new Label { Text = "Input project or .jar", AutoSize = true, Anchor = AnchorStyles.Left }, 0, 1);
+        layout.Controls.Add(_input, 1, 1); layout.Controls.Add(CreateFolderBrowse(_input), 2, 1); layout.Controls.Add(CreateJarBrowse(_input), 3, 1);
+        layout.Controls.Add(new Label { Text = "Output 26.3 project", AutoSize = true, Anchor = AnchorStyles.Left }, 0, 2);
+        layout.Controls.Add(_output, 1, 2); layout.SetColumnSpan(_output, 2); layout.Controls.Add(CreateFolderBrowse(_output), 3, 2);
+        layout.Controls.Add(new Label { Text = "NeoForge 26.3 pin", AutoSize = true, Anchor = AnchorStyles.Left }, 0, 3);
+        layout.Controls.Add(_neo, 1, 3); layout.SetColumnSpan(_neo, 2);
+        layout.SetColumnSpan(_status, 4); layout.Controls.Add(_status, 0, 4);
+        layout.SetColumnSpan(_run, 2); layout.Controls.Add(_run, 0, 5); layout.Controls.Add(_openOutput, 2, 5); layout.Controls.Add(_clearLog, 3, 5);
+        layout.SetColumnSpan(_build, 4); layout.Controls.Add(_build, 0, 6);
+        layout.SetColumnSpan(_progress, 4); layout.Controls.Add(_progress, 0, 7);
+        layout.SetColumnSpan(_log, 4); layout.Controls.Add(_log, 0, 9);
         Controls.Add(layout);
         _run.Click += async (_, _) => await RunConversionAsync();
+        _openOutput.Click += (_, _) => { if (Directory.Exists(_output.Text)) Process.Start(new ProcessStartInfo("explorer.exe", _output.Text) { UseShellExecute = true }); };
+        _clearLog.Click += (_, _) => _log.Clear();
     }
 
     private Button CreateFolderBrowse(TextBox target)
@@ -186,6 +208,36 @@ public sealed class MainForm : Form
         _log.SelectionStart = _log.TextLength;
         _log.ScrollToCaret();
     }
+
+    private static TextBox NewTextBox(string text = "") => new()
+    {
+        Text = text,
+        BackColor = Color.FromArgb(45, 48, 56),
+        ForeColor = Color.White,
+        BorderStyle = BorderStyle.FixedSingle,
+        Dock = DockStyle.Fill
+    };
+
+    private static CheckBox NewCheck(string text, bool isChecked) => new()
+    {
+        Text = text,
+        Checked = isChecked,
+        AutoSize = true,
+        ForeColor = Color.Gainsboro
+    };
+
+    private static Button NewButton(string text, int minWidth) => new()
+    {
+        Text = text,
+        FlatStyle = FlatStyle.Flat,
+        BackColor = Color.FromArgb(60, 64, 78),
+        ForeColor = Color.White,
+        MinimumSize = new Size(minWidth, 32),
+        Height = 32,
+        Dock = DockStyle.Fill,
+        Cursor = Cursors.Hand,
+        FlatAppearance = { BorderColor = Color.FromArgb(90, 96, 112) }
+    };
 
     private static string? ExtractRejectionReason(string output)
     {
