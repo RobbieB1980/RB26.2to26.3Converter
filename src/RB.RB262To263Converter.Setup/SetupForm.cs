@@ -67,7 +67,7 @@ public sealed class SetupForm : Form
         _txtDir.BorderStyle = BorderStyle.FixedSingle;
         _txtDir.Text = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "RB-26.2-to-26.3-Converter");
+            "RB-Legacy-Java-Converter");
 
         _btnBrowse.Location = new Point(474, 128);
         _btnBrowse.FlatStyle = FlatStyle.Flat;
