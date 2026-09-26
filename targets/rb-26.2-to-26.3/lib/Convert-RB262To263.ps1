@@ -32,6 +32,21 @@ function Update-TextVersionMarkers([string]$Path, [string]$NeoVersion) {
     $updated = [regex]::Replace($text, '(?im)(minecraft[_\.-]version\s*[=:]\s*["'']?)26\.2(["'']?)', { param($m) $m.Groups[1].Value + '26.3' + $m.Groups[2].Value })
     $updated = [regex]::Replace($updated, '(?im)(neo[_\.-]version\s*[=:]\s*["'']?)26\.2(?:\.\d+)*(?:-[^"''\s]+)?(["'']?)', { param($m) $m.Groups[1].Value + $normalizedNeoVersion + $m.Groups[2].Value })
     $updated = [regex]::Replace($updated, '(?im)(minecraft_version_range\s*[=:]\s*["'']?)\[26\.2\](["'']?)', { param($m) $m.Groups[1].Value + '[26.3]' + $m.Groups[2].Value })
+    # Preserve the registry identity; label the artifact and human-readable metadata.
+    if ([IO.Path]::GetFileName($Path) -eq 'gradle.properties') {
+        $updated = [regex]::Replace($updated, '(?m)^(mod_version\s*=)([^\r\n]+)', {
+            param($m)
+            $version = $m.Groups[2].Value.Trim() -replace '\+mc26\.[23]-neoforge$', ''
+            if (-not $version.EndsWith('-26.3')) { $version += '-26.3' }
+            $m.Groups[1].Value + $version
+        })
+        $updated = [regex]::Replace($updated, '(?m)^(mod_name\s*=)([^\r\n]+)', {
+            param($m)
+            $name = $m.Groups[2].Value.Trim()
+            if (-not $name.EndsWith('-26.3')) { $name += '-26.3' }
+            $m.Groups[1].Value + $name
+        })
+    }
     $updated = [regex]::Replace($updated, '(?im)(versionRange\s*=\s*["''])\[26\.2[^\)]*\)', { param($m) $m.Groups[1].Value + '[' + $normalizedNeoVersion + ',)' })
     $updated = [regex]::Replace($updated, '(?im)(versionRange\s*=\s*["''])\[26\.2\](["''])', { param($m) $m.Groups[1].Value + '[26.3]' + $m.Groups[2].Value })
     if ($updated -ne $text) { Set-Content -LiteralPath $Path -Value $updated -Encoding UTF8; return $true }
