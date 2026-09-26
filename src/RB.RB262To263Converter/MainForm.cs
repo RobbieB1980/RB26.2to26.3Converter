@@ -10,6 +10,7 @@ public sealed class MainForm : Form
     private readonly TextBox _neo = new() { Text = "neoforge-26.3.0.7-beta", Dock = DockStyle.Fill };
     private readonly TextBox _log = new() { Multiline = true, ReadOnly = true, ScrollBars = ScrollBars.Vertical, Dock = DockStyle.Fill };
     private readonly Button _run = new() { Text = "Convert 26.2 → 26.3", AutoSize = true };
+    private readonly CheckBox _build = new() { Text = "Run Gradle build after conversion", Checked = true, AutoSize = true };
     private readonly Label _status = new() { Text = "Preview target: exact NeoForge 26.2 input → NeoForge 26.3 output", AutoSize = true, ForeColor = Color.DarkGoldenrod };
 
     public MainForm()
@@ -39,6 +40,7 @@ public sealed class MainForm : Form
         layout.Controls.Add(new Label { Text = "Required until the official stable 26.3 artifact is pinned.", AutoSize = true, ForeColor = Color.DimGray, Anchor = AnchorStyles.Left }, 1, 3);
         layout.SetColumnSpan(_status, 4); layout.Controls.Add(_status, 0, 3);
         layout.SetColumnSpan(_run, 4); layout.Controls.Add(_run, 0, 4);
+        layout.SetColumnSpan(_build, 4); layout.Controls.Add(_build, 0, 5);
         layout.SetColumnSpan(_log, 4); layout.Controls.Add(_log, 0, 6);
         Controls.Add(layout);
         _run.Click += async (_, _) => await RunConversionAsync();
@@ -88,9 +90,55 @@ public sealed class MainForm : Form
             using var process = Process.Start(psi) ?? throw new InvalidOperationException("Could not start PowerShell.");
             var stdout = await process.StandardOutput.ReadToEndAsync(); var stderr = await process.StandardError.ReadToEndAsync(); await process.WaitForExitAsync();
             _log.Text = stdout + (string.IsNullOrWhiteSpace(stderr) ? "" : Environment.NewLine + stderr);
-            _status.Text = process.ExitCode == 0 ? "Preview conversion completed; inspect MIGRATION_EVIDENCE.md before building." : $"Conversion failed with exit code {process.ExitCode}.";
+            if (process.ExitCode != 0)
+            {
+                _status.Text = $"Conversion failed with exit code {process.ExitCode}.";
+                return;
+            }
+
+            if (_build.Checked)
+            {
+                _status.Text = "Conversion completed; running Gradle build…";
+                var buildResult = await RunGradleBuildAsync(_output.Text);
+                _log.AppendText(Environment.NewLine + Environment.NewLine + "===== GRADLE BUILD =====" + Environment.NewLine + buildResult.Output);
+                if (!string.IsNullOrWhiteSpace(buildResult.Error))
+                    _log.AppendText(Environment.NewLine + buildResult.Error);
+                _status.Text = buildResult.ExitCode == 0
+                    ? "Conversion and Gradle build completed; inspect MIGRATION_EVIDENCE.md."
+                    : $"Conversion completed, but Gradle build failed with exit code {buildResult.ExitCode}.";
+            }
+            else
+            {
+                _status.Text = "Preview conversion completed; build was skipped.";
+            }
         }
         catch (Exception ex) { _log.Text = ex.ToString(); _status.Text = "Conversion failed."; }
         finally { _run.Enabled = true; }
+    }
+
+    private static async Task<(int ExitCode, string Output, string Error)> RunGradleBuildAsync(string outputPath)
+    {
+        var wrapper = Path.Combine(outputPath, OperatingSystem.IsWindows() ? "gradlew.bat" : "gradlew");
+        if (!File.Exists(wrapper))
+            return (-2, "No Gradle wrapper (gradlew.bat) was found in the converted project.", "");
+
+        var psi = new ProcessStartInfo("cmd.exe")
+        {
+            UseShellExecute = false,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            CreateNoWindow = true,
+            WorkingDirectory = outputPath
+        };
+        psi.ArgumentList.Add("/d");
+        psi.ArgumentList.Add("/c");
+        psi.ArgumentList.Add("gradlew.bat");
+        psi.ArgumentList.Add("build");
+        psi.ArgumentList.Add("--no-daemon");
+        using var process = Process.Start(psi) ?? throw new InvalidOperationException("Could not start Gradle wrapper.");
+        var output = await process.StandardOutput.ReadToEndAsync();
+        var error = await process.StandardError.ReadToEndAsync();
+        await process.WaitForExitAsync();
+        return (process.ExitCode, output, error);
     }
 }
