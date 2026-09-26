@@ -135,10 +135,25 @@ public sealed class MainForm : Form
         psi.ArgumentList.Add("gradlew.bat");
         psi.ArgumentList.Add("build");
         psi.ArgumentList.Add("--no-daemon");
+        var java25 = FindJava25Home();
+        if (!string.IsNullOrWhiteSpace(java25))
+        {
+            psi.Environment["JAVA_HOME"] = java25;
+            psi.Environment["PATH"] = Path.Combine(java25, "bin") + Path.PathSeparator + (Environment.GetEnvironmentVariable("PATH") ?? "");
+        }
         using var process = Process.Start(psi) ?? throw new InvalidOperationException("Could not start Gradle wrapper.");
         var output = await process.StandardOutput.ReadToEndAsync();
         var error = await process.StandardError.ReadToEndAsync();
         await process.WaitForExitAsync();
         return (process.ExitCode, output, error);
+    }
+
+    private static string? FindJava25Home()
+    {
+        var adoptium = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Eclipse Adoptium");
+        if (!Directory.Exists(adoptium)) return null;
+        return Directory.EnumerateDirectories(adoptium, "jdk-25*", SearchOption.TopDirectoryOnly)
+            .OrderByDescending(path => path, StringComparer.OrdinalIgnoreCase)
+            .FirstOrDefault(path => File.Exists(Path.Combine(path, "bin", "java.exe")));
     }
 }
