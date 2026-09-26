@@ -31,6 +31,8 @@ function Update-TextVersionMarkers([string]$Path, [string]$NeoVersion) {
     $normalizedNeoVersion = $NeoVersion -replace '^neoforge-', ''
     $updated = $text -replace '(?im)(minecraft[_\.-]version\s*[=:]\s*["'']?)26\.2(["'']?)', '$126.3$2'
     $updated = $updated -replace '(?im)(neo[_\.-]version\s*[=:]\s*["'']?)26\.2(?:\.\d+)?(?:-[^"''\s]+)?(["'']?)', ('$1' + $normalizedNeoVersion + '$2')
+    $updated = $updated -replace '(?im)(versionRange\s*=\s*["''])\[26\.2[^\)]*\)', ('$1[' + $normalizedNeoVersion + ',)')
+    $updated = $updated -replace '(?im)(versionRange\s*=\s*["''])\[26\.2\](["''])', '$1[26.3]$2'
     if ($updated -ne $text) { Set-Content -LiteralPath $Path -Value $updated -Encoding UTF8; return $true }
     return $false
 }
@@ -76,7 +78,10 @@ function Invoke-RB262To263 {
         if ([IO.Path]::GetExtension($resolvedInput) -ne '.jar') { throw 'Input file must be a .jar, or provide a project folder.' }
         $temporaryInput = Join-Path ([IO.Path]::GetTempPath()) ('rb262263-jar-' + [guid]::NewGuid().ToString('N'))
         New-Item -ItemType Directory -Path $temporaryInput -Force | Out-Null
-        Expand-Archive -LiteralPath $resolvedInput -DestinationPath $temporaryInput -Force
+        $archivePath = Join-Path ([IO.Path]::GetTempPath()) ('rb262263-jar-' + [guid]::NewGuid().ToString('N') + '.zip')
+        Copy-Item -LiteralPath $resolvedInput -Destination $archivePath -Force
+        try { Expand-Archive -LiteralPath $archivePath -DestinationPath $temporaryInput -Force }
+        finally { Remove-Item -LiteralPath $archivePath -Force -ErrorAction SilentlyContinue }
         $inputFull = $temporaryInput
     } else { $inputFull = $resolvedInput }
     $targetRoot = Split-Path -Parent $PSScriptRoot
@@ -87,15 +92,19 @@ function Invoke-RB262To263 {
     if ([string]::IsNullOrWhiteSpace($OutputPath)) { $outputFull = Get-RB262To263OutputPath $resolvedInput }
     elseif (-not (Test-Path -LiteralPath $OutputPath)) { $outputFull = [IO.Path]::GetFullPath($OutputPath) } else { $outputFull = (Resolve-Path -LiteralPath $OutputPath).Path }
     if ($resolvedInput.TrimEnd('\') -eq $outputFull.TrimEnd('\')) { throw 'Input and output paths must be different.' }
-    $props = Get-ChildItem -LiteralPath $inputFull -Recurse -File -Include '*.properties','*.gradle','*.gradle.kts','mods.toml' -ErrorAction SilentlyContinue
+    $props = Get-ChildItem -LiteralPath $inputFull -Recurse -File -Include '*.properties','*.gradle','*.gradle.kts','mods.toml','*.toml' -ErrorAction SilentlyContinue
     $sourceText = ($props | ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw }) -join "`n"
-    if ($sourceText -notmatch '(?<!\d)26\.2(?:\.\d+)?(?!\d)') { if ($temporaryInput) { Remove-Item -LiteralPath $temporaryInput -Recurse -Force -ErrorAction SilentlyContinue }; return [pscustomobject]@{ Status='Rejected'; Reason='Input does not contain an exact NeoForge/Minecraft 26.2 marker.' } }
+    $has262Marker = $sourceText -match '(?<!\d)26\.2(?:\.\d+)?(?!\d)'
+    if (-not $has262Marker -and $temporaryInput) {
+        $has262Marker = $sourceText -match '(?i)versionRange\s*=\s*["'']\[26\.2|modId\s*=\s*["'']neoforge["'']'
+    }
+    if (-not $has262Marker) { if ($temporaryInput) { Remove-Item -LiteralPath $temporaryInput -Recurse -Force -ErrorAction SilentlyContinue }; return [pscustomobject]@{ Status='Rejected'; Reason='Input does not contain an exact NeoForge/Minecraft 26.2 marker.' } }
     if ([string]::IsNullOrWhiteSpace($NeoVersion)) { throw 'NeoVersion is required until an official stable NeoForge 26.3 pin is available.' }
     New-Item -ItemType Directory -Path $outputFull -Force | Out-Null
     Get-ChildItem -LiteralPath $inputFull -Force | Copy-Item -Destination $outputFull -Recurse -Force
     $warnings = [System.Collections.Generic.List[string]]::new()
     $changed = [System.Collections.Generic.List[string]]::new()
-    foreach ($file in Get-ChildItem -LiteralPath $outputFull -Recurse -File -Include '*.properties','*.gradle','*.gradle.kts','mods.toml') {
+    foreach ($file in Get-ChildItem -LiteralPath $outputFull -Recurse -File -Include '*.properties','*.gradle','*.gradle.kts','mods.toml','*.toml') {
         if (Update-TextVersionMarkers $file.FullName $NeoVersion) { $changed.Add($file.FullName.Substring($outputFull.Length + 1)) }
     }
     foreach ($file in Get-ChildItem -LiteralPath $outputFull -Recurse -File -Filter 'pack.mcmeta') {
