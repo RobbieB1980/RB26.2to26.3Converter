@@ -1,5 +1,12 @@
 # Preview changelog
 
+## 1.1.1
+
+- Bundle and verify Vineflower 1.12.0 explicitly in both portable and installer
+  payloads. JAR decompilation no longer requires a first-run download.
+- Verify cached/downloaded Vineflower against its published SHA-256; use both
+  official Maven Central endpoints if the packaged tool is missing or damaged.
+
 ## 1.1.0
 
 - Added verified dependency cache/index, separate 26.2 source references and

@@ -18,6 +18,16 @@ Write-Host 'Publishing converter...' -ForegroundColor Cyan
 dotnet publish $AppProject -c $Configuration -r $Runtime --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:DebugType=None -p:DebugSymbols=false -o $Payload
 if ($LASTEXITCODE -ne 0) { throw 'Converter publish failed.' }
 
+# Required runtime tools must be present before either archive or installer is built.
+$runtimeLib = Join-Path $Repo 'targets\rb-26.2-to-26.3\legacy-pipeline\lib'
+. (Join-Path $runtimeLib 'VineflowerRuntime.ps1')
+$vineflower = Get-VineflowerJar -Version '1.12.0' -CacheDir (Join-Path $runtimeLib 'decompiler-cache')
+$packagedCache = Join-Path $Payload 'tools\rb-26.2-to-26.3\legacy-pipeline\lib\decompiler-cache'
+New-Item -ItemType Directory -Path $packagedCache -Force | Out-Null
+Copy-Item -LiteralPath $vineflower -Destination $packagedCache -Force
+$packagedJar = Join-Path $packagedCache 'vineflower-1.12.0.jar'
+if ((Get-FileHash -LiteralPath $packagedJar).Hash -ne (Get-FileHash -LiteralPath $vineflower).Hash) { throw 'Packaged Vineflower verification failed.' }
+
 Copy-Item (Join-Path $Repo 'targets\rb-26.2-to-26.3\README.md') $Payload -Force
 Copy-Item (Join-Path $Repo 'targets\rb-26.2-to-26.3\target-manifest.json') $Payload -Force
 Copy-Item (Join-Path $Repo 'targets\rb-26.2-to-26.3\CHANGELOG.md') $Payload -Force
@@ -27,6 +37,17 @@ if (Test-Path (Join-Path $Repo 'assets\app.ico')) { Copy-Item (Join-Path $Repo '
 $zip = Join-Path $Dist 'portable-payload.zip'
 tar.exe -a -c -f $zip -C (Join-Path $Dist 'payload') 'RB-26.2-to-26.3-Converter'
 if ($LASTEXITCODE -ne 0 -or -not (Test-Path $zip)) { throw 'Payload archive failed.' }
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+$archive = [IO.Compression.ZipFile]::OpenRead($zip)
+try {
+    $entry = $archive.GetEntry('RB-26.2-to-26.3-Converter/tools/rb-26.2-to-26.3/legacy-pipeline/lib/decompiler-cache/vineflower-1.12.0.jar')
+    if (-not $entry) { throw 'Vineflower missing from installer payload archive.' }
+    $stream = $entry.Open()
+    $sha = [Security.Cryptography.SHA256]::Create()
+    try { $archiveHash = [BitConverter]::ToString($sha.ComputeHash($stream)).Replace('-','') }
+    finally { $stream.Dispose(); $sha.Dispose() }
+    if ($archiveHash -ne (Get-FileHash -LiteralPath $vineflower).Hash) { throw 'Archived Vineflower checksum mismatch.' }
+} finally { $archive.Dispose() }
 
 Write-Host 'Publishing installer...' -ForegroundColor Cyan
 $setupOut = Join-Path $Dist 'setup'

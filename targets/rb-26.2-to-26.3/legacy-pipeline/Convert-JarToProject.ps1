@@ -47,25 +47,7 @@ function Write-Info([string]$m) { Write-Host "    $m" }
 # Java detection/selection helpers live in lib/ConversionCore.ps1
 # (Get-JarRequiredJavaMajor / Resolve-Java / Get-ProjectRequiredJavaMajor / Invoke-GradleBuildWithRequiredJava).
 
-function Get-VineflowerJar {
-    param([string]$Version, [string]$CacheDir)
-    New-Item -ItemType Directory -Force -Path $CacheDir | Out-Null
-    $name = "vineflower-$Version.jar"
-    $dest = Join-Path $CacheDir $name
-    if (Test-Path -LiteralPath $dest) { return $dest }
-    $url = "https://repo1.maven.org/maven2/org/vineflower/vineflower/$Version/vineflower-$Version.jar"
-    Write-Info "Downloading Vineflower $Version ..."
-    Write-Info $url
-    try {
-        Invoke-WebRequest -Uri $url -OutFile $dest -UseBasicParsing
-    } catch {
-        throw "Failed to download Vineflower from Maven Central: $($_.Exception.Message)"
-    }
-    if (-not (Test-Path $dest) -or ((Get-Item $dest).Length -lt 10000)) {
-        throw "Vineflower download looks invalid: $dest"
-    }
-    return $dest
-}
+. (Join-Path $ToolRoot 'lib\VineflowerRuntime.ps1')
 
 function Get-ModHintsFromJarExtract {
     param([string]$ExtractDir)
