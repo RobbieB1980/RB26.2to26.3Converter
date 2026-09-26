@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>RB-26.2-to-26.3-Converter-Setup</AssemblyName>
+    <RootNamespace>RB.RB262To263Converter.Setup</RootNamespace>
+    <ApplicationIcon>..\..\assets\app.ico</ApplicationIcon>
+    <Product>RB 26.2 to 26.3 Converter Setup</Product>
+    <Company>RobbieB1980</Company>
+    <Description>Installer for RB 26.2 to 26.3 Converter</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\dist\portable-payload.zip" Condition="Exists('..\..\dist\portable-payload.zip')" LogicalName="portable-payload.zip" />
+  </ItemGroup>
+</Project>

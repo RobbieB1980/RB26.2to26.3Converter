@@ -1,0 +1,23 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v8.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v8.0": {
+      "RB-26.2-to-26.3-Converter/1.0.0": {
+        "runtime": {
+          "RB-26.2-to-26.3-Converter.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "RB-26.2-to-26.3-Converter/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

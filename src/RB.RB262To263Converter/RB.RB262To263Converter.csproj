@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>RB-26.2-to-26.3-Converter</AssemblyName>
+    <RootNamespace>RB.RB262To263Converter</RootNamespace>
+    <ApplicationIcon>..\..\assets\app.ico</ApplicationIcon>
+    <Product>RB 26.2 to 26.3 Converter</Product>
+    <Company>RobbieB1980</Company>
+    <Description>Convert NeoForge 26.2 projects toward NeoForge 26.3 with conservative evidence-backed passes</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="..\..\targets\rb-26.2-to-26.3\**\*" Link="tools\rb-26.2-to-26.3\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\LICENSE" Link="LICENSE" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>
