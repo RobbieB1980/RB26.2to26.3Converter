@@ -804,6 +804,8 @@ public sealed class MainForm : Form
                 {
                     AppendLog("Output: " + _lastOutput, Color.LightGreen);
                     _btnOpenOut.Enabled = true;
+                    if (_chkCompile.Checked)
+                        _ = RunTargetBuildAsync(_lastOutput);
                 }
             }
             else
@@ -824,6 +826,46 @@ public sealed class MainForm : Form
             _running = null;
         };
         _pollTimer.Start();
+    }
+
+    private async Task RunTargetBuildAsync(string projectRoot)
+    {
+        var script = Path.Combine(AppContext.BaseDirectory, "tools", "rb-26.2-to-26.3", "Build-WithDestinationJava.ps1");
+        if (!File.Exists(script))
+        {
+            AppendLog("Build helper missing: " + script, Color.Salmon);
+            return;
+        }
+
+        AppendLog("===== GRADLE BUILD =====", Color.White);
+        AppendLog("Using destination Java 25 and the generated Gradle wrapper.", Color.Khaki);
+        var psi = new ProcessStartInfo
+        {
+            FileName = "powershell.exe",
+            Arguments = $"-NoProfile -ExecutionPolicy Bypass -File {Quote(script)} -ProjectRoot {Quote(projectRoot)}",
+            WorkingDirectory = projectRoot,
+            UseShellExecute = false,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            CreateNoWindow = true,
+            StandardOutputEncoding = Encoding.UTF8,
+            StandardErrorEncoding = Encoding.UTF8
+        };
+        using var process = new Process { StartInfo = psi, EnableRaisingEvents = true };
+        process.OutputDataReceived += (_, e) => { if (!string.IsNullOrEmpty(e.Data)) AppendLog(e.Data, Color.Gainsboro); };
+        process.ErrorDataReceived += (_, e) => { if (!string.IsNullOrEmpty(e.Data)) AppendLog(e.Data, Color.Salmon); };
+        try
+        {
+            if (!process.Start()) throw new InvalidOperationException("Failed to start Gradle build helper.");
+            process.BeginOutputReadLine();
+            process.BeginErrorReadLine();
+            await process.WaitForExitAsync();
+            AppendLog(process.ExitCode == 0 ? "Gradle build completed successfully." : $"Gradle build failed with exit code {process.ExitCode}.", process.ExitCode == 0 ? Color.LightGreen : Color.Salmon);
+        }
+        catch (Exception ex)
+        {
+            AppendLog("Gradle build could not start: " + ex.Message, Color.Salmon);
+        }
     }
 
     /// <summary>Prepares the failed output and opens Codex as the GokuCodexAI repair orchestrator.</summary>
