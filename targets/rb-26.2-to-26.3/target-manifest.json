@@ -9,7 +9,7 @@
   "target": {
     "minecraft": "26.3",
     "loader": "neoforge",
-    "neo_version": "neoforge-26.3.0.7-beta",
+    "neo_version": "neoforge-26.3.0.22-beta",
     "neo_version_status": "current-beta-default",
     "data_pack_version": 121.0,
     "resource_pack_version": 97.1

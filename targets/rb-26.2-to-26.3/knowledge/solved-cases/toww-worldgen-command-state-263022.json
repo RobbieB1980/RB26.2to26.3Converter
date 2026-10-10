@@ -1,0 +1,27 @@
+{
+  "id": "toww-worldgen-command-state-263022",
+  "source_minecraft": "26.2",
+  "target_minecraft": "26.3",
+  "neo_version": "26.3.0.22-beta",
+  "failure_pattern": "type Feature does not take parameters|no interface expected here|feature\.configurations does not exist|method setValue in class StateHolder|no suitable constructor found for CommandSourceStack",
+  "status": "build-verified",
+  "diagnosis": "The TOWW 26.2 sources use generic/configuration-based Feature classes and outdated CommandSourceStack and StateHolder.setValue signatures removed or tightened in NeoForge 26.3.0.22-beta.",
+  "repair": "Apply the guarded JavaParser rules to Feature implementation and codec signatures, feature registry generics, CommandSourceStack construction, and raw StateHolder property writes. Preserve configured feature behavior and all unrelated source.",
+  "validation": "Converted the original TOWW 26.2 JAR with converter 1.1.6; 12 Java files received exact AST repairs. Java 25 Gradle build succeeded on NeoForge 26.3.0.22-beta. Runtime and in-game content remain untested.",
+  "runtime": "not-tested",
+  "automatic_patch_eligible": true,
+  "implementation": "Repair-Known263Apis.ps1 and lib/ast/Known263Apis.java",
+  "scope": "Exact Minecraft 26.2 -> NeoForge 26.3.0.22-beta. Pattern matching routes repair evidence; automatic edits remain limited to guarded AST rules and their fixtures.",
+  "evidence": [
+    "I:/26.2 to 26.3 Projects/the_one_who_watches-1.4.4+mc26.2-neoforge-26.3/compile-errors.log",
+    "C:/GokuCodexAI/Data/Solved_Problems/rb-26.2-to-26.3/build-history/build-20260928T121311-87d7b405ee714ac4936a463260d5d211/case.json",
+    "C:/Users/rmbel/.gradle/caches/modules-2/files-2.1/net.neoforged/neoforge/26.3.0.22-beta/c2cf90f58bf4f60104e21ed73794ae11f1d2c00a/neoforge-26.3.0.22-beta-sources.jar"
+  ],
+  "tests": [
+    "scripts/Test-Known263Apis.ps1",
+    "scripts/Test-PromotedCases.ps1",
+    "scripts/Test-InputBoundary.ps1",
+    "prescribed Java 25 gradlew build"
+  ],
+  "verified_date": "2026-09-28"
+}

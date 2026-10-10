@@ -34,6 +34,28 @@ class DependencyTests(unittest.TestCase):
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
 
+    def _metadata_fixture(self, source_text):
+        source=self.root/'original.jar'
+        data=io.BytesIO()
+        with zipfile.ZipFile(data,'w') as z:
+            z.writestr('META-INF/neoforge.mods.toml',source_text)
+        source.write_bytes(data.getvalue())
+        output=self.root/'out'
+        target=output/'src/main/templates/META-INF/neoforge.mods.toml'
+        target.parent.mkdir(parents=True)
+        target.write_text('''modLoader="javafml"
+loaderVersion="[4,)"
+license="${mod_license}"
+
+[[mods]]
+modId="${mod_id}"
+version="${mod_version}"
+displayName="${mod_name}"
+authors="${mod_authors}"
+description=''' + "'''${mod_description}'''" + '''
+''')
+        return source,target
+
     def test_original_jar_required_optional_and_bundled(self):
         p = self.root / 'input.jar'
         p.write_bytes(jar(dependencies='''[[dependencies.example]]
@@ -118,10 +140,163 @@ type='incompatible'
         dep.audit_resources(source,output)
         self.assertFalse((output/'src/main/resources/META-INF/neoforge.mods.toml').exists())
 
+    def test_metadata_preservation_keeps_source_fields_and_target_pins(self):
+        source=self.root/'original.jar'
+        original='''modLoader="javafml"
+loaderVersion="[4,)"
+license="Custom License"
+issueTrackerURL="https://example.invalid/issues"
+
+[[mods]]
+modId="fixture"
+version="2.7.1"
+displayName="Source Fixture"
+displayURL="https://example.invalid/home"
+iconFile="assets/fixture/icon.png"
+authors="Source Author"
+description=''' + "'''Preserve this source description'''" + '''
+customField="keep-this-field"
+
+[[mixins]]
+config="fixture.mixins.json"
+
+[[accessTransformers]]
+file="META-INF/fixture.cfg"
+
+[[dependencies.fixture]]
+modId="configuration"
+type="required"
+versionRange="[4,5)"
+ordering="AFTER"
+side="BOTH"
+'''
+        data=io.BytesIO()
+        with zipfile.ZipFile(data,'w') as z:
+            z.writestr('META-INF/neoforge.mods.toml',original)
+        source.write_bytes(data.getvalue())
+        output=self.root/'out'
+        target=output/'src/main/templates/META-INF/neoforge.mods.toml'
+        target.parent.mkdir(parents=True)
+        target.write_text('''modLoader="javafml"
+loaderVersion="[4,)"
+license="${mod_license}"
+
+[[mods]]
+modId="${mod_id}"
+version="${mod_version}"
+displayName="${mod_name}"
+authors="${mod_authors}"
+description=''' + "'''${mod_description}'''" + '''
+
+# Generated equivalent registration with different comments.
+[[mixins]]
+config="fixture.mixins.json"
+
+# Generated equivalent access transformer registration.
+[[accessTransformers]]
+file="META-INF/fixture.cfg"
+
+[[dependencies.${mod_id}]]
+modId="neoforge"
+type="required"
+versionRange="[${neo_version},)"
+ordering="NONE"
+side="BOTH"
+''')
+        dep.preserve_dependency_metadata(source,output)
+        result=target.read_text()
+        self.assertIn('license="Custom License"',result)
+        self.assertIn('issueTrackerURL="https://example.invalid/issues"',result)
+        self.assertIn('displayName="Source Fixture"',result)
+        self.assertIn('displayURL="https://example.invalid/home"',result)
+        self.assertIn('iconFile="assets/fixture/icon.png"',result)
+        self.assertIn('authors="Source Author"',result)
+        self.assertIn("description='''Preserve this source description'''",result)
+        self.assertIn('customField="keep-this-field"',result)
+        self.assertIn('[[mixins]]',result)
+        self.assertIn('config="fixture.mixins.json"',result)
+        self.assertIn('[[accessTransformers]]',result)
+        self.assertIn('file="META-INF/fixture.cfg"',result)
+        self.assertEqual(result.count('[[mixins]]'),1)
+        self.assertEqual(result.count('[[accessTransformers]]'),1)
+        self.assertIn('modId="${mod_id}"',result)
+        self.assertIn('version="${mod_version}"',result)
+        self.assertIn('versionRange="[${neo_version},)"',result)
+        self.assertEqual(result.count('[[dependencies.fixture]]'),1)
+        dep.preserve_dependency_metadata(source,output)
+        self.assertEqual(result,target.read_text())
+
+    def test_metadata_guard_rejects_multiline_array_without_writing(self):
+        source,target=self._metadata_fixture('''modLoader="javafml"
+loaderVersion="[4,)"
+license="MIT"
+[[mods]]
+modId="fixture"
+version="1.0"
+customList=["first",
+"second"]
+''')
+        before=target.read_bytes()
+        with self.assertRaisesRegex(ValueError,'multiline array'):
+            dep.preserve_dependency_metadata(source,target.parents[4])
+        self.assertEqual(before,target.read_bytes())
+
+    def test_metadata_guard_rejects_standard_table_before_mods_without_writing(self):
+        source,target=self._metadata_fixture('''modLoader="javafml"
+loaderVersion="[4,)"
+license="MIT"
+[custom]
+enabled=true
+[[mods]]
+modId="fixture"
+version="1.0"
+''')
+        before=target.read_bytes()
+        with self.assertRaisesRegex(ValueError,'standard TOML tables'):
+            dep.preserve_dependency_metadata(source,target.parents[4])
+        self.assertEqual(before,target.read_bytes())
+
+    def test_metadata_guard_rejects_standard_table_after_mods_without_writing(self):
+        source,target=self._metadata_fixture('''modLoader="javafml"
+loaderVersion="[4,)"
+license="MIT"
+[[mods]]
+modId="fixture"
+version="1.0"
+[custom]
+enabled=true
+''')
+        before=target.read_bytes()
+        with self.assertRaisesRegex(ValueError,'standard TOML tables'):
+            dep.preserve_dependency_metadata(source,target.parents[4])
+        self.assertEqual(before,target.read_bytes())
+
+    def test_metadata_guard_rejects_multiple_mods_without_writing(self):
+        source,target=self._metadata_fixture('''modLoader="javafml"
+loaderVersion="[4,)"
+license="MIT"
+[[mods]]
+modId="fixture"
+version="1.0"
+[[mods]]
+modId="second"
+version="1.0"
+''')
+        before=target.read_bytes()
+        with self.assertRaisesRegex(ValueError,r'exactly one \[\[mods\]\]'):
+            dep.preserve_dependency_metadata(source,target.parents[4])
+        self.assertEqual(before,target.read_bytes())
+
     def test_version_range_guard(self):
         self.assertTrue(dep.version_allowed('5.5.7','[5.5,)'))
         self.assertFalse(dep.version_allowed('5.5.7','[4,5)'))
         self.assertTrue(dep.version_allowed('5.5.7','[5.5.7]'))
+        self.assertTrue(dep.version_allowed('4.1.4+26.3','[4,5)'))
+        self.assertFalse(dep.version_allowed('5.0+26.3','[4,5)'))
+        with self.assertRaises(ValueError):
+            dep.version_allowed('4.1.4-beta+26.3','[4,5)')
+        with self.assertRaises(ValueError):
+            dep.version_allowed('4.1.4+26.2','[4,5)')
 
     def test_api_findings_do_not_edit_sources(self):
         path=self.root/'src/main/java/Example.java';path.parent.mkdir(parents=True)

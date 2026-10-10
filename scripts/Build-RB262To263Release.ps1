@@ -1,22 +1,41 @@
 [CmdletBinding()]
 param(
     [ValidateSet('Release','Debug')][string]$Configuration = 'Release',
-    [string]$Runtime = 'win-x64'
+    [string]$Runtime = 'win-x64',
+    [string]$OutputDirectory = ''
 )
 
 $ErrorActionPreference = 'Stop'
 $Repo = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
-$Dist = Join-Path $Repo 'dist'
+$Dist = if ([string]::IsNullOrWhiteSpace($OutputDirectory)) {
+    Join-Path $Repo (Join-Path 'dist' ('release-' + (Get-Date -Format 'yyyyMMdd-HHmmss')))
+} else {
+    [IO.Path]::GetFullPath($OutputDirectory)
+}
 $Payload = Join-Path $Dist 'payload\RB-26.2-to-26.3-Converter'
 $AppProject = Join-Path $Repo 'src\RB.RB262To263Converter\RB.RB262To263Converter.csproj'
 $SetupProject = Join-Path $Repo 'src\RB.RB262To263Converter.Setup\RB.RB262To263Converter.Setup.csproj'
 
-if (Test-Path $Dist) { Remove-Item $Dist -Recurse -Force }
+if (Test-Path $Dist) {
+    if (@(Get-ChildItem -LiteralPath $Dist -Force).Count -gt 0) {
+        throw "Release output already exists and is not empty: $Dist"
+    }
+} else {
+    New-Item -ItemType Directory -Path $Dist -Force | Out-Null
+}
 New-Item -ItemType Directory -Path $Payload -Force | Out-Null
 
 Write-Host 'Publishing converter...' -ForegroundColor Cyan
 dotnet publish $AppProject -c $Configuration -r $Runtime --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:DebugType=None -p:DebugSymbols=false -o $Payload
 if ($LASTEXITCODE -ne 0) { throw 'Converter publish failed.' }
+
+# The .NET SDK does not reliably publish JAR files from the tools glob.
+$astSource = Join-Path $Repo 'targets\rb-26.2-to-26.3\lib\ast\javaparser-core-3.28.2.jar'
+$astDest = Join-Path $Payload 'tools\rb-26.2-to-26.3\lib\ast\javaparser-core-3.28.2.jar'
+if ((Get-FileHash $astSource).Hash -ne 'B5499A3B1C40B16C0671FABE478C9AAFEAB38160C6FDE74A6C13F42D86716ECD') { throw 'JavaParser source checksum mismatch.' }
+New-Item -ItemType Directory -Path (Split-Path $astDest) -Force | Out-Null
+Copy-Item -LiteralPath $astSource -Destination $astDest -Force
+if ((Get-FileHash $astDest).Hash -ne (Get-FileHash $astSource).Hash) { throw 'Packaged JavaParser checksum mismatch.' }
 
 # Required runtime tools must be present before either archive or installer is built.
 $runtimeLib = Join-Path $Repo 'targets\rb-26.2-to-26.3\legacy-pipeline\lib'
@@ -40,6 +59,13 @@ if ($LASTEXITCODE -ne 0 -or -not (Test-Path $zip)) { throw 'Payload archive fail
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 $archive = [IO.Compression.ZipFile]::OpenRead($zip)
 try {
+    $parserEntry = $archive.GetEntry('RB-26.2-to-26.3-Converter/tools/rb-26.2-to-26.3/lib/ast/javaparser-core-3.28.2.jar')
+    if (-not $parserEntry) { throw 'JavaParser missing from installer archive.' }
+    $parserStream = $parserEntry.Open()
+    $parserSha = [Security.Cryptography.SHA256]::Create()
+    try { $parserHash = [BitConverter]::ToString($parserSha.ComputeHash($parserStream)).Replace('-','') }
+    finally { $parserStream.Dispose(); $parserSha.Dispose() }
+    if ($parserHash -ne (Get-FileHash $astSource).Hash) { throw 'Archived JavaParser checksum mismatch.' }
     $entry = $archive.GetEntry('RB-26.2-to-26.3-Converter/tools/rb-26.2-to-26.3/legacy-pipeline/lib/decompiler-cache/vineflower-1.12.0.jar')
     if (-not $entry) { throw 'Vineflower missing from installer payload archive.' }
     $stream = $entry.Open()

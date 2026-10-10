@@ -52,7 +52,7 @@ public sealed class SetupForm : Form
         };
         var sub = new Label
         {
-            Text = "Installs a portable tool for NeoForge 26.2 → NeoForge 26.3 conversion (preview).\nUninstall is available here, from Start Menu, or Apps & features.",
+            Text = "Installs the portable tool for NeoForge 26.2 → NeoForge 26.3 conversion.\nUninstall is available here, from Start Menu, or Apps & features.",
             ForeColor = Color.FromArgb(160, 200, 160),
             Location = new Point(24, 52),
             Size = new Size(550, 40)

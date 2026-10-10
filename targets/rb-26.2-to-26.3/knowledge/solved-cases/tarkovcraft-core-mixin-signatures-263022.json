@@ -1,0 +1,35 @@
+{
+  "id": "tarkovcraft-core-mixin-signatures-263022",
+  "source_minecraft": "26.2",
+  "target_minecraft": "26.3",
+  "neo_version": "26.3.0.22-beta",
+  "failure_pattern": "CallbackInfoReturnable is required|GameRendererMixin.*Expected \\(Lorg/spongepowered/asm/mixin/injection/callback/CallbackInfo;\\)V but found|tarkovCraftCore\\$swing\\(.*CallbackInfo;\\)V|tarkovCraftCore\\$render\\(Lnet/minecraft/client/DeltaTracker;Z",
+  "status": "build-verified-runtime-smoke",
+  "diagnosis": "After TarkovCraft Core compiled on 26.3, client mixin apply still failed because handler method descriptors did not match 26.3 target method shapes. LivingEntity.swing now returns boolean, so @Inject handlers require CallbackInfoReturnable and setReturnValue. GameRenderer.render() no longer takes DeltaTracker/boolean; injecting with those parameters yields InvalidInjectionException. Camera.setRotation(FFF)V and MouseHandler.turnPlayer(D)V require capturing the method arguments in the handler signature.",
+  "repair": "Verify each mixin target with javap against minecraft-patched-26.3.0.22-beta.jar. (1) LivingEntity.swing(Hand,SwingAnimation,boolean)Z: use CallbackInfoReturnable<Boolean> and cir.setReturnValue(false) when cancelling. (2) GameRenderer.render(): inject handler takes only CallbackInfo; obtain timing via Minecraft.getDeltaTracker(). Injection point LevelRenderer.blitEntityOutline()V remains valid. (3) Camera.setRotation(FFF)V: handler must declare the three float parameters before CallbackInfo. (4) MouseHandler.turnPlayer(D)V: handler must declare the double parameter before CallbackInfo. Rebuild and redeploy before retesting; compile success alone does not prove mixin apply.",
+  "validation": "Java 25 build passed after signature edits. First live attempt failed with LivingEntityMixin CallbackInfoReturnable requirement; second failed with GameRendererMixin invalid descriptor; third load succeeded after GameRenderer/Camera/MouseHandler handler fixes (user-confirmed).",
+  "runtime": "user-reported-pass",
+  "runtime_scope": "User confirmed client load succeeded on NeoForge 26.3.0.22-beta with the repaired jar. Crash reports crash-2026-09-28_20.51.02-client.txt and latest.log mixin FATAL entries were the failure evidence. Gameplay was not separately tested.",
+  "automatic_patch_eligible": false,
+  "implementation": "Manual mixin handler signature repair in TarkovCraft Core; guidance only. Do not blanket-rewrite unrelated mixins.",
+  "scope": "Exact NeoForge 26.3.0.22-beta. Match failure_pattern against crash/latest logs. Always confirm target method descriptors from the patched jar before changing handlers.",
+  "files_changed": [
+    "src/main/java/tnt/tarkovcraft/core/mixin/LivingEntityMixin.java",
+    "src/main/java/tnt/tarkovcraft/core/mixin/client/GameRendererMixin.java",
+    "src/main/java/tnt/tarkovcraft/core/mixin/client/CameraMixin.java",
+    "src/main/java/tnt/tarkovcraft/core/mixin/client/MouseHandlerMixin.java"
+  ],
+  "evidence": [
+    "build-history/build-20260928T205304-tarkovcraft-live-mixin-pass/case.json",
+    "C:/Users/rmbel/AppData/Roaming/.minecraft/versions/neoforge-26.3.0.22-beta/crash-reports/crash-2026-09-28_20.51.02-client.txt",
+    "C:/Users/rmbel/AppData/Roaming/.minecraft/versions/neoforge-26.3.0.22-beta/logs/latest.log",
+    "I:/26.2 to 26.3 Projects/tarkovcraft_core-neoforge-2.10.1+26.2-26.3/build/moddev/artifacts/minecraft-patched-26.3.0.22-beta.jar",
+    "C:/GokuCodexAI/Data/NeoForge_Primers/26.3/Official-Primer-26.2-to-26.3.md"
+  ],
+  "tests": [
+    "scripts/Test-PromotedCases.ps1",
+    "prescribed Java 25 gradlew build",
+    "user live client load on neoforge-26.3.0.22-beta"
+  ],
+  "verified_date": "2026-09-28"
+}

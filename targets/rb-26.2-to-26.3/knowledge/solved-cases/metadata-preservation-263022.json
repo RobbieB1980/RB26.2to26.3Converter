@@ -1,0 +1,26 @@
+{
+  "id": "metadata-preservation-263022",
+  "source_minecraft": "26.2",
+  "target_minecraft": "26.3",
+  "neo_version": "26.3.0.22-beta",
+  "failure_pattern": "Source mod metadata fields (mixins|accessTransformers) were dropped by generated NeoForge template",
+  "status": "regression-verified",
+  "diagnosis": "The generated RB 26.2 to 26.3 NeoForge template retained only platform placeholders and selected dependency blocks. Source-owned issue URLs, update URLs, display URL, icon, authors, description, custom mod fields, mixin declarations, and access-transformer declarations could disappear during scaffold generation.",
+  "repair": "In the exact rb-26.2-to-26.3 dependency metadata preservation stage, merge source root and [[mods]] assignments into the generated template while retaining target-owned modId/version and loader/version pins. Preserve non-platform dependency blocks and copy source [[mixins]] and [[accessTransformers]] blocks exactly, with duplicate-safe insertion. Reject invalid TOML, multiline arrays or inline tables, standard tables, and multiple [[mods]] blocks before writing; these cases require manual metadata repair.",
+  "validation": "The behavioral fixture failed before the repair because the generated template kept the generic license, display fields, and description while omitting mixins and access transformers. After the repair, the canonical dependency regression suite passed 17 tests, including source fields, custom fields, source dependencies, semantically duplicate mixin/access-transformer blocks, target placeholders, idempotence, and all three refusal guards. An isolated replay using the actual TarkovCraft source JAR and current template passed twice without changing the real project. Canonical and installed dependencies.py copies have identical SHA-256 hashes.",
+  "runtime": "not-tested",
+  "runtime_scope": "No game launch, registry or data loading, or gameplay validation was performed.",
+  "automatic_patch_eligible": false,
+  "implementation": "targets/rb-26.2-to-26.3/dependencies.py: preserve_dependency_metadata",
+  "scope": "Exact 26.2 -> 26.3 converter only. Preserve source metadata as evidence-backed input; keep generated target pins and version placeholders.",
+  "evidence": [
+    "scripts/test_dependencies.py",
+    "targets/rb-26.2-to-26.3/dependencies.py",
+    "C:/GokuCodexAI/projects/RB26.2to26.3Converter/targets/rb-26.2-to-26.3/dependencies.py",
+    "C:/Users/rmbel/AppData/Local/RB-26.2-to-26.3-Converter/tools/rb-26.2-to-26.3/dependencies.py"
+  ],
+  "tests": [
+    "scripts/test_dependencies.py",
+    "py -3.14 -m py_compile targets/rb-26.2-to-26.3/dependencies.py"
+  ]
+}

@@ -150,7 +150,7 @@ public sealed class MainForm : Form
             Margin = new Padding(0, 0, 0, 8)
         };
         versions.Controls.Add(LabeledField("Minecraft", _txtMc, 90, "26.2"));
-        versions.Controls.Add(LabeledField("NeoForge", _txtNeo, 170, "neoforge-26.3.0.7-beta"));
+        versions.Controls.Add(LabeledField("NeoForge", _txtNeo, 170, "neoforge-26.3.0.22-beta"));
         versions.Controls.Add(LabeledField("GeckoLib", _txtGecko, 210, "geckolib-neoforge-26.3-5.5.7"));
 
         var options = new FlowLayoutPanel
@@ -641,7 +641,7 @@ public sealed class MainForm : Form
     {
         var inputPath = _txtInput.Text.Trim();
         var outputPath = _txtOutput.Text.Trim();
-        var neo = string.IsNullOrWhiteSpace(_txtNeo.Text) ? "neoforge-26.3.0.7-beta" : _txtNeo.Text.Trim();
+        var neo = string.IsNullOrWhiteSpace(_txtNeo.Text) ? "neoforge-26.3.0.22-beta" : _txtNeo.Text.Trim();
         var mc = string.IsNullOrWhiteSpace(_txtMc.Text) ? "26.2" : _txtMc.Text.Trim();
         var gecko = string.IsNullOrWhiteSpace(_txtGecko.Text) ? "geckolib-neoforge-26.3-5.5.7" : _txtGecko.Text.Trim();
         var jarMode = _radJar.Checked;

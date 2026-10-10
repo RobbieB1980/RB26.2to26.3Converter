@@ -191,6 +191,14 @@
         "create"
       ],
       "modrinth": "create"
+    },
+    "configuration": {
+      "imports": [
+        "dev.toma.configuration"
+      ],
+      "artifacts": [],
+      "aliases": [],
+      "modrinth": "3WjjSM5O"
     }
   },
   "source_minecraft": "26.2"

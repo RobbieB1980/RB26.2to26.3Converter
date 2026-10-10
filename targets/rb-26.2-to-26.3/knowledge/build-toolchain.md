@@ -12,7 +12,7 @@ primer. Read the failed project's actual Gradle files before applying any fix.
 - Verified BuildPaste wrapper: Gradle 9.2.1. Wrapper acquisition may use a local
   reference, so always read gradle/wrapper/gradle-wrapper.properties; this is
   observed build evidence, not a universal wrapper pin.
-- Target default: NeoForge 26.3.0.7-beta. Match the conversion manifest pin.
+- Target default: NeoForge 26.3.0.22-beta. Match the conversion manifest pin.
 - The target converter writes neoForge.enable with version = project.neo_version
   and disableRecompilation = true. Preserve this tested configuration; consult
   exact plugin sources before changing DSL or re-enabling recompilation.

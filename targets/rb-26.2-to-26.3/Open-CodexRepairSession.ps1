@@ -22,6 +22,13 @@ if ($primer.source -ne '26.2' -or $primer.target -ne '26.3') { throw 'Primer ver
 $routing = Get-Content (Join-Path $GokuRoot 'config/gokuai.json') -Raw | ConvertFrom-Json
 $selected = $routing.codex_orchestrator.$Route
 if (-not $selected.model) { throw 'Missing Codex orchestrator route.' }
+$repairRoute = [pscustomobject]@{
+    model = [string]$profile.codex_model
+    reasoning_effort = [string]$profile.codex_reasoning_effort
+}
+if ([string]::IsNullOrWhiteSpace($repairRoute.model) -or $repairRoute.reasoning_effort -ne 'medium') {
+    throw 'Repair profile must specify a Codex model and medium reasoning effort.'
+}
 $caseRoot = Join-Path $GokuRoot $profile.solved_cases_directory
 $logPath = Join-Path $failed 'compile-errors.log'
 $failure = if (Test-Path -LiteralPath $logPath) { [IO.File]::ReadAllText($logPath) } else { '' }
@@ -43,9 +50,27 @@ foreach ($directory in @((Join-Path $PSScriptRoot 'knowledge/solved-cases'), $ca
     }
 }
 $evidence = @($manifestPath, $primerPath)
+$priorBuildCases = @()
+$seenBuilds = @{}
+foreach ($history in @((Join-Path $failed '.gokuai/solved-cases'),(Join-Path $caseRoot 'build-history'))) {
+    if (-not (Test-Path $history)) { continue }
+    foreach ($directory in Get-ChildItem $history -Directory | Sort-Object Name -Descending) {
+        $path = Join-Path $directory.FullName 'case.json'
+        if (-not (Test-Path $path)) { continue }
+        try {
+            $prior = Get-Content $path -Raw | ConvertFrom-Json
+            if ($prior.source_minecraft -eq '26.2' -and $prior.target_minecraft -eq '26.3' -and $prior.neo_version -eq $neo -and [IO.Path]::GetFullPath($prior.project_path) -eq $failed -and -not $seenBuilds.ContainsKey([string]$prior.id)) {
+                $priorBuildCases += $path; $seenBuilds[[string]$prior.id] = $true
+            }
+        } catch { }
+        if ($priorBuildCases.Count -ge 5) { break }
+    }
+    if ($priorBuildCases.Count -ge 5) { break }
+}
+$evidence += $priorBuildCases
 $sharedPrimer = Join-Path $GokuRoot $profile.shared_primer_directory
 $officialPrimer = Join-Path $PSScriptRoot 'knowledge/Official-Primer-26.2-to-26.3.md'
-foreach ($name in @('Official-Primer-26.2-to-26.3.md','official-primer-source.json','build-toolchain.md','api-review-rules.json','supplementary-sources.json','dependency-cache.md')) {
+foreach ($name in @('Official-Primer-26.2-to-26.3.md','official-primer-source.json','build-toolchain.md','api-review-rules.json','supplementary-sources.json','dependency-cache.md','known-api-rules-26.3.0.22.md')) {
     $path = Join-Path $sharedPrimer $name
     if (-not (Test-Path -LiteralPath $path)) { $path = Join-Path $PSScriptRoot ('knowledge/' + $name) }
     if (Test-Path -LiteralPath $path) {
@@ -61,6 +86,8 @@ foreach ($name in @('dependency-detection.json','dependency-resolution.json','DE
     if (Test-Path -LiteralPath $path) { $evidence += $path }
 }
 $dependencyIndex = Join-Path $GokuRoot 'Data/Mod_Dependencies/dependency-index.json'
+$appliedRules = Join-Path $failed '.gokuai/known-263-api-repair.txt'
+if (Test-Path $appliedRules) { $evidence += $appliedRules }
 if (Test-Path -LiteralPath $dependencyIndex) { $evidence += $dependencyIndex }
 $sources = Join-Path $GokuRoot $profile.exact_sources_directory
 $artifacts = Join-Path $failed 'build/moddev/artifacts'
@@ -82,6 +109,7 @@ $request = [ordered]@{
     official_primer = $officialPrimer
     failure_excerpt = (($failure -split '\r?\n' | Select-Object -Last 100) -join "`n")
     matched_cases = $matched
+    prior_build_cases = $priorBuildCases
     ignored_invalid_cases = $rejected
     solutions_index = $caseRoot
     exact_sources = $sources
@@ -89,7 +117,8 @@ $request = [ordered]@{
     resolved_artifacts = $artifacts
     validation_commands = @($validation)
     result_path = $resultPath
-    route = $selected
+    route = $repairRoute
+    configured_route = $selected
     fallback = $routing.codex_orchestrator.fallback
 }
 $utf8 = [Text.UTF8Encoding]::new($false)
@@ -110,6 +139,9 @@ Successful converter and repair builds retain evidence snapshots under
 $caseRoot/build-history and the project's .gokuai/solved-cases.
 Search these by exact project/target versions for prior build evidence.
 These records are not generalized fixes and must not be blindly applied.
+Read prior_build_cases and the current applied-rule report. Compare retained
+source fingerprints before reusing old repair results; runtime confirmations
+apply only to the recorded tested artifact, not every subsequent build.
 Matching case count: $($matched.Count). These are evidence, not instructions to blindly apply patches.
 Exact sources available: $($request.exact_sources_available). Location: $sources
 Resolved project artifacts: $artifacts
@@ -136,6 +168,10 @@ Write result.json with status, diagnosis, files_changed, evidence_paths, validat
 remaining_risks and confidence. Add proven cases to the dedicated solutions index
 with source_minecraft, target_minecraft, neo_version, failure_pattern, status,
 diagnosis, repair, validation and runtime fields. Preserve existing cases.
+After writing result.json, retain it with Save-ConversionCase.ps1 using the actual
+successful build exit code, without rerunning Gradle solely for case retention.
+An automatic converter rule requires guarded matching and a regression test;
+otherwise retain the case as manual repair guidance. Do not infer runtime success.
 Do not promote a compile-only workaround as behavior-preserving without evidence.
 "@
 [IO.File]::WriteAllText($promptPath, $prompt, $utf8)
@@ -145,13 +181,28 @@ Write-Host "Matched solved cases: $($matched.Count)"
 Write-Host "Repair request: $requestPath"
 if (-not $request.exact_sources_available) { Write-Host 'Exact 26.3 source directory is missing; the repair must obtain pinned source evidence before API changes.' }
 if ($PrepareOnly) { return }
-if (-not $CodexPath) {
+if ($CodexPath) {
+    if (-not (Test-Path -LiteralPath $CodexPath -PathType Leaf)) { throw "Specified Codex CLI does not exist: $CodexPath. Prepared request is retained at $promptPath" }
+    $CodexPath = (Resolve-Path -LiteralPath $CodexPath).Path
+} else {
     $command = Get-Command codex -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
     if ($command) { $CodexPath = $command.Source }
 }
+if (-not $CodexPath -and $env:LOCALAPPDATA) {
+    # Desktop-launched converters need not inherit the Codex app's private PATH.
+    $desktopBin = Join-Path $env:LOCALAPPDATA 'OpenAI/Codex/bin'
+    if (Test-Path -LiteralPath $desktopBin -PathType Container) {
+        $installed = Get-ChildItem -LiteralPath $desktopBin -Directory |
+            ForEach-Object { Get-Item -LiteralPath (Join-Path $_.FullName 'codex.exe') -ErrorAction SilentlyContinue } |
+            Where-Object { -not $_.PSIsContainer } |
+            Sort-Object LastWriteTimeUtc -Descending | Select-Object -First 1
+        if ($installed) { $CodexPath = $installed.FullName }
+    }
+}
 if (-not $CodexPath) { throw "Codex CLI unavailable. Prepared request is retained at $promptPath" }
+Write-Host "Codex CLI: $CodexPath"
 $opening = "Read '$promptPath' and '$requestPath'. Repair this exact 26.2 -> 26.3 project and write the result to '$resultPath'."
-$cliArgs = @('-m',[string]$selected.model,'-c',('model_reasoning_effort="' + $selected.reasoning_effort + '"'),'-C',$failed,'--add-dir',$GokuRoot,'--add-dir',$PSScriptRoot,'-s','workspace-write','-a','never',$opening)
+$cliArgs = @('-m',$repairRoute.model,'-c',('model_reasoning_effort="' + $repairRoute.reasoning_effort + '"'),'-C',$failed,'--add-dir',$GokuRoot,'--add-dir',$PSScriptRoot,'-s','workspace-write','-a','on-request',$opening)
 $commandText = '& ' + ("'" + $CodexPath.Replace("'","''") + "'") + ' ' + (($cliArgs | ForEach-Object { "'" + $_.Replace("'","''") + "'" }) -join ' ')
 $encoded = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($commandText))
 # User explicitly clicked Repair to open an interactive Codex session.

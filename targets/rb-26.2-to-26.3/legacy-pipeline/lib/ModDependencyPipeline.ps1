@@ -518,7 +518,7 @@ function Resolve-AndAcquireDependencies {
             continue
         }
         $entry = Get-CatalogEntry -Catalog $Catalog -ModId $id
-        if ($entry -and $entry.Kind -eq 'skip') {
+        if ($entry -and $entry.PSObject.Properties['Kind'] -and $entry.Kind -eq 'skip') {
             $resolved.Add((New-ResolvedDependency -Record $rec -Action 'skip' -Status 'platform' -Note 'Minecraft/loader platform dep')) | Out-Null
             continue
         }
@@ -528,7 +528,7 @@ function Resolve-AndAcquireDependencies {
         $mavenCoord = ''
         $repos = @()
         $tomlRange = $rec.VersionRange
-        if ($entry -and $entry.Kind -eq 'never-convert') {
+        if ($entry -and $entry.PSObject.Properties['Kind'] -and $entry.Kind -eq 'never-convert') {
             $actionHint = 'never-convert'
             if ($entry.Modrinth) { $modrinthSlug = $entry.Modrinth }
         } elseif ($entry -and $entry.modId) {

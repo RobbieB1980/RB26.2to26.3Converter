@@ -83,7 +83,13 @@ function Convert-Minecraft262ClientItemDocument {
     )
 
     $document = $JsonText | ConvertFrom-Json
-    if ($null -eq $document.model -or $document.model.model -ne 'minecraft:item/template_spawn_egg') {
+    # Item-model documents may contain a direct model reference or a composite
+    # model definition (condition/range_dispatch/select). Only the direct
+    # reference has a nested `model` property to rewrite.
+    $modelProperty = if ($null -ne $document.model) {
+        $document.model.PSObject.Properties['model']
+    }
+    if ($null -eq $modelProperty -or $modelProperty.Value -ne 'minecraft:item/template_spawn_egg') {
         return $JsonText.TrimEnd()
     }
     $document.model.model = "${ModId}:item/template_spawn_egg"

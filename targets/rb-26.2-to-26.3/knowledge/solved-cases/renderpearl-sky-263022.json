@@ -1,0 +1,26 @@
+{
+  "id": "renderpearl-sky-263022",
+  "source_minecraft": "26.2",
+  "target_minecraft": "26.3",
+  "neo_version": "26.3.0.22-beta",
+  "failure_pattern": "com\\.mojang\\.blaze3d\\.(?:PrimitiveTopology|buffers\\.GpuBuffer|systems\\.RenderPass|textures\\.GpuTextureView|vertex\\.VertexFormat)|mulPose\\(Quaternionf\\)",
+  "status": "build-verified",
+  "diagnosis": "Generated sky rendering still uses pre-26.3 graphics packages or quaternion overloads.",
+  "repair": "Run Repair-Known263Apis.ps1 for the exact target. It moves graphics imports, rotates quaternion poses, binds compiled pipelines and texture uniforms, and removes only identity extra transform parameters. Preserve geometry, textures and draw arguments.",
+  "validation": "Robmod: Java 25 full build on 26.3.0.22-beta. PChaosKit: Java 25 full build on 26.3.0.7-beta, followed by user-confirmed gameplay on 26.3.0.22-beta. Rule-specific regression fixtures apply where automated.",
+  "runtime": "user-reported-pass",
+  "runtime_scope": "User reported successful in-game operation; individual features were not separately enumerated.",
+  "automatic_patch_eligible": true,
+  "implementation": "lib/ast/Known263Apis.java: render",
+  "scope": "Exact 26.2 -> 26.3 target pin. Evidence match is guidance; automatic changes are limited to guarded converter rules. Never overlay another mod source wholesale.",
+  "evidence": [
+    "build-history/build-20260926T100245-ddce40d852bd4ff181bb357bd2af017f/case.json",
+    "build-history/build-20260926T100245-ddce40d852bd4ff181bb357bd2af017f/runtime-confirmation.json",
+    "build-history/build-20260926T100245-ddce40d852bd4ff181bb357bd2af017f/repair-result.json"
+  ],
+  "tests": [
+    "scripts/Test-PromotedCases.ps1",
+    "scripts/Test-Known263Apis.ps1",
+    "scripts/Test-Known263Data.ps1"
+  ]
+}

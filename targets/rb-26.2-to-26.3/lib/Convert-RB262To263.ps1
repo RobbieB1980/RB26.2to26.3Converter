@@ -12,6 +12,22 @@ function Remove-JsonProperty {
 
 function Read-JsonFile([string]$Path) { Get-Content -LiteralPath $Path -Raw | ConvertFrom-Json }
 
+function Test-RB262JarInput([string]$JarPath) {
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    $archive = [IO.Compression.ZipFile]::OpenRead($JarPath)
+    try {
+        foreach ($entry in $archive.Entries | Where-Object { $_.FullName -in @('META-INF/neoforge.mods.toml','META-INF/mods.toml') }) {
+            $reader = [IO.StreamReader]::new($entry.Open())
+            try { $text = $reader.ReadToEnd() } finally { $reader.Dispose() }
+            foreach ($block in [regex]::Matches($text, '(?is)\[\[dependencies\.[^\]]+\]\](.*?)(?=\[\[|\z)')) {
+                if ($block.Value -match '(?im)^\s*modId\s*=\s*["'']minecraft["'']' -and
+                    $block.Value -match '(?im)^\s*versionRange\s*=\s*["'']\[\s*26\.2(?:\.\d+)?\s*(?:,|\])') { return $true }
+            }
+        }
+        return $false
+    } finally { $archive.Dispose() }
+}
+
 function Get-RB262To263OutputPath([string]$InputPath) {
     $full = [IO.Path]::GetFullPath($InputPath)
     if (Test-Path -LiteralPath $full -PathType Leaf) { $name = [IO.Path]::GetFileNameWithoutExtension($full); $parent = Split-Path -Parent $full }
@@ -157,7 +173,7 @@ function Invoke-RB262To263 {
     param(
         [Parameter(Mandatory)][string]$InputPath,
         [string]$OutputPath = '',
-        [string]$NeoVersion = 'neoforge-26.3.0.7-beta',
+        [string]$NeoVersion = 'neoforge-26.3.0.22-beta',
         [string]$GeckoLibVersion = 'geckolib-neoforge-26.3-5.5.7',
         [switch]$OfflineDependencies
     )
@@ -165,11 +181,15 @@ function Invoke-RB262To263 {
     $temporaryInput = $null
     if (Test-Path -LiteralPath $resolvedInput -PathType Leaf) {
         if ([IO.Path]::GetExtension($resolvedInput) -ne '.jar') { throw 'Input file must be a .jar, or provide a project folder.' }
+        if (-not (Test-RB262JarInput $resolvedInput)) { throw 'Input JAR is not identified as a Minecraft 26.2 NeoForge project. This converter accepts 26.2 -> 26.3 only.' }
         $legacyRoot = Join-Path ([IO.Path]::GetTempPath()) ('rb262263-legacy-' + [guid]::NewGuid().ToString('N'))
         $decompiled = Join-Path $legacyRoot 'decompiled'
         New-Item -ItemType Directory -Path $legacyRoot -Force | Out-Null
         $legacyScript = Join-Path (Split-Path -Parent $PSScriptRoot) 'legacy-pipeline\Convert-JarToProject.ps1'
         if (-not (Test-Path -LiteralPath $legacyScript)) { throw "Missing legacy JAR pipeline: $legacyScript" }
+        # The intermediate pipeline detects the source version and selects its
+        # exact route. For 26.2 inputs that route has only 26.2 scaffold passes;
+        # legacy pre-26.2 passes must never be forced by a solved-case overlay.
         & $legacyScript -JarPath $resolvedInput -OutputPath $decompiled -ContinueToNeoForge262 -NeoVersion '26.2.0.72' -MinecraftVersion '26.2' -ExternalDependencyResolver | Out-Null
         $inputFull = $decompiled + '-26.2'
         if (-not (Test-Path -LiteralPath $inputFull -PathType Container)) { throw "Legacy JAR pipeline did not produce a 26.2 scaffold: $inputFull" }
@@ -205,13 +225,38 @@ function Invoke-RB262To263 {
     if ($textBomCount -gt 0) { $changed.Add("Text source BOM normalization ($textBomCount files)") }
     $apiCount = Update-Java26x3Apis $outputFull
     if ($apiCount -gt 0) { $changed.Add("Java 26.3 API compatibility transforms ($apiCount files)") }
+    if (($NeoVersion -replace '^neoforge-','') -eq '26.3.0.22-beta') {
+        & (Join-Path $targetRoot 'Repair-Known263Apis.ps1') -ProjectRoot $outputFull -NeoVersion $NeoVersion | ForEach-Object { Write-Host $_ }
+        $astReport = Join-Path $outputFull '.gokuai/known-263-api-repair.txt'
+        if (Test-Path $astReport) {
+            foreach ($line in Get-Content $astReport) {
+                if ($line.StartsWith('CHANGED ')) { $changed.Add($line.Substring(8)) }
+                elseif ($line.StartsWith('REVIEW ')) { $warnings.Add($line) }
+            }
+        }
+    }
     foreach ($file in Get-ChildItem -LiteralPath $outputFull -Recurse -File -Filter 'pack.mcmeta') {
         $json = Read-JsonFile $file.FullName
         $hasData = Test-Path -LiteralPath (Join-Path (Split-Path $file.FullName) 'data')
         Set-JsonProperty $json.pack 'pack_format' $(if ($hasData) { 121.0 } else { 97.1 })
+        # The decompiler's placeholder description is not the original JAR name.
+        # For the primary pack, identify the input artifact before writing output metadata.
+        $relativePack = $file.FullName.Substring($outputFull.Length + 1).Replace('\', '/')
+        if ($relativePack -in @('pack.mcmeta', 'src/main/resources/pack.mcmeta')) {
+            $originalJar = $resolvedInput
+            if ($temporaryInput -eq $null) {
+                $provenance = Join-Path $inputFull 'original-jar.txt'
+                if (Test-Path -LiteralPath $provenance) { $originalJar = (Get-Content -LiteralPath $provenance -Raw).Trim() }
+            }
+            $originalName = [IO.Path]::GetFileName($originalJar)
+            if ([string]::IsNullOrWhiteSpace($originalName)) { $originalName = [IO.Path]::GetFileName($resolvedInput) }
+            Set-JsonProperty $json.pack 'description' "$originalName - 26.3 version"
+        }
         Write-JsonFile $file.FullName $json
         $changed.Add($file.FullName.Substring($outputFull.Length + 1))
     }
+    . (Join-Path $PSScriptRoot 'Known263Data.ps1')
+    foreach ($path in @(Update-Known263Data -ProjectRoot $outputFull)) { $changed.Add($path) }
     foreach ($file in Get-ChildItem -LiteralPath $outputFull -Recurse -File -Filter '*.json') {
         if ($file.FullName -notmatch '\\worldgen\\noise_settings\\') { continue }
         $json = Read-JsonFile $file.FullName

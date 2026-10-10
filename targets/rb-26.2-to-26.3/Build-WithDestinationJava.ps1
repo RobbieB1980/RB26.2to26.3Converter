@@ -21,10 +21,13 @@ $pin = "org.gradle.java.home=$($javaHome -replace '\\','/')"
 $text = if (Test-Path $props) { Get-Content $props -Raw } else { '' }
 if ($text -match '(?m)^\s*org\.gradle\.java\.home\s*=') { $text = [regex]::Replace($text, '(?m)^\s*org\.gradle\.java\.home\s*=.*$', $pin) } else { $text = $text.TrimEnd() + "`r`n$pin`r`n" }
 [IO.File]::WriteAllText($props, $text)
-$oldHome = $env:JAVA_HOME; $oldPath = $env:PATH
+$oldHome = $env:JAVA_HOME; $oldPath = $env:PATH; $oldGradleHome = $env:GRADLE_USER_HOME
 try {
     $env:JAVA_HOME = $javaHome
     $env:PATH = (Join-Path $javaHome 'bin') + [IO.Path]::PathSeparator + $oldPath
+    if ([string]::IsNullOrWhiteSpace($env:GRADLE_USER_HOME)) {
+        $env:GRADLE_USER_HOME = Join-Path $env:USERPROFILE '.gradle'
+    }
     Push-Location $ProjectRoot
     try {
         # Tee keeps the complete diagnostic log while forwarding Gradle output
@@ -36,7 +39,7 @@ try {
     }
     finally { Pop-Location }
 }
-finally { $env:JAVA_HOME = $oldHome; $env:PATH = $oldPath }
+finally { $env:JAVA_HOME = $oldHome; $env:PATH = $oldPath; $env:GRADLE_USER_HOME = $oldGradleHome }
 Write-Host "JAVA_HOME=$javaHome"
 Write-Host "Gradle exit code: $exitCode"
 Write-Host "Log: $(Join-Path $ProjectRoot $LogFileName)"

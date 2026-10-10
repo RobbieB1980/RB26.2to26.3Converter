@@ -1,0 +1,24 @@
+{
+  "id": "codex-desktop-cli-discovery-263022",
+  "source_minecraft": "26.2",
+  "target_minecraft": "26.3",
+  "neo_version": "26.3.0.22-beta",
+  "failure_pattern": "Codex CLI unavailable\\. Prepared request is retained",
+  "status": "regression-verified",
+  "diagnosis": "The repair launcher searched only inherited PATH. The installed desktop Codex executable was outside the persisted Windows PATH.",
+  "repair": "Preserve explicit path and PATH precedence, validate explicit paths, then discover codex.exe under LOCALAPPDATA/OpenAI/Codex/bin version directories. Preserve prepared repair evidence on failure.",
+  "validation": "Test-CodexDiscovery.ps1 reproduced failure before fix, passes after fix in PowerShell 7 and Windows PowerShell 5.1. Installed-copy test and real saved-Windows-PATH discovery passed with interactive launch intercepted. CLI --version returned codex-cli 0.158.0-alpha.2.1. RepairProfile, PromotedCases and CaseRetention tests passed.",
+  "runtime": "not-tested",
+  "runtime_scope": "Launcher discovery only. No authenticated interactive repair execution, mod build, registry load or gameplay validated by this case.",
+  "automatic_patch_eligible": false,
+  "implementation": "Open-CodexRepairSession.ps1",
+  "scope": "Manual infrastructure guidance; this does not mark the TarkovCraft conversion repaired.",
+  "evidence": [
+    "C:\\GokuCodexAI\\validation\\codex-discovery-20260928\\VALIDATION.md",
+    "C:\\GokuCodexAI\\validation\\codex-discovery-20260928\\Open-CodexRepairSession.before.ps1"
+  ],
+  "tests": [
+    "scripts/Test-CodexDiscovery.ps1"
+  ],
+  "verified_date": "2026-09-28"
+}

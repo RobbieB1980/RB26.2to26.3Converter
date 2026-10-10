@@ -1,0 +1,26 @@
+{
+  "id": "payload-registration-263022",
+  "source_minecraft": "26.2",
+  "target_minecraft": "26.3",
+  "neo_version": "26.3.0.22-beta",
+  "failure_pattern": "no suitable method found for playBidirectional|incompatible types:.*RegistryFriendlyByteBuf",
+  "status": "build-verified",
+  "diagnosis": "The message map loses the shared generic type of the payload ID, codec and handlers.",
+  "repair": "Keep Type<T> in NetworkMessage<T>, use StreamCodec<? super RegistryFriendlyByteBuf,T>, and register through a record method retaining both directional handlers. The guarded AST rule matches the known generated record and registration structure.",
+  "validation": "Robmod: Java 25 full build on 26.3.0.22-beta. PChaosKit: Java 25 full build on 26.3.0.7-beta, followed by user-confirmed gameplay on 26.3.0.22-beta. Rule-specific regression fixtures apply where automated.",
+  "runtime": "user-reported-pass",
+  "runtime_scope": "User reported successful in-game operation; individual features were not separately enumerated.",
+  "automatic_patch_eligible": true,
+  "implementation": "lib/ast/Known263Apis.java: networking",
+  "scope": "Exact 26.2 -> 26.3 target pin. Evidence match is guidance; automatic changes are limited to guarded converter rules. Never overlay another mod source wholesale.",
+  "evidence": [
+    "build-history/build-20260926T100245-ddce40d852bd4ff181bb357bd2af017f/case.json",
+    "build-history/build-20260926T100245-ddce40d852bd4ff181bb357bd2af017f/runtime-confirmation.json",
+    "build-history/build-20260926T100245-ddce40d852bd4ff181bb357bd2af017f/repair-result.json"
+  ],
+  "tests": [
+    "scripts/Test-PromotedCases.ps1",
+    "scripts/Test-Known263Apis.ps1",
+    "scripts/Test-Known263Data.ps1"
+  ]
+}

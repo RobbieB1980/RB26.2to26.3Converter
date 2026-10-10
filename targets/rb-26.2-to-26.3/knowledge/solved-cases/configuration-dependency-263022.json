@@ -1,0 +1,34 @@
+{
+  "id": "configuration-dependency-263022",
+  "source_minecraft": "26.2",
+  "target_minecraft": "26.3",
+  "neo_version": "26.3.0.22-beta",
+  "failure_pattern": "Dependency configuration: blocked (?:No verified project identity|Dependency range needs manual review)",
+  "status": "dependency-resolution-verified",
+  "diagnosis": "The source declares required modId configuration with version range [4,5) and imports dev.toma.configuration. Primary Modrinth metadata identifies project 3WjjSM5O and the exact 26.3 NeoForge release as version 8KSj2YNF, named 4.1.4+26.3. The resolver rejected the valid target suffix before the hardened parser update.",
+  "repair": "Add the verified Configuration project identity 3WjjSM5O to the 26.3 dependency index, acquire the exact CDN artifact 8KSj2YNF, and wire it as libs/rb-26.3/3WjjSM5O-8KSj2YNF.jar. Compare only the numeric release component for the +26.3 suffix while rejecting other suffixes. Preserve the original [4,5) metadata and the 26.2 source reference as evidence.",
+  "validation": "Resolve-Dependencies.ps1 rerun against the original source JAR exited 0 with blocked_required=0. The resolved artifact has SHA-256 0423dd2aaa77f9668d03a8d352119f90130aca2612f9f122b6da081f772a0c20. The canonical resolver regression suite reports 12 tests passed, and DEPENDENCIES-26.3.md records configuration 4.1.4+26.3.",
+  "runtime": "not-tested",
+  "runtime_scope": "No game launch, registry or data loading, or gameplay validation was performed.",
+  "automatic_patch_eligible": false,
+  "implementation": [
+    "C:/GokuCodexAI/Data/Mod_Dependencies/dependency-index.json",
+    "C:/GokuCodexAI/projects/RB26.2to26.3Converter/targets/rb-26.2-to-26.3/dependencies.py",
+    "C:/Users/rmbel/AppData/Local/RB-26.2-to-26.3-Converter/tools/rb-26.2-to-26.3/dependencies.py",
+    "knowledge/dependency-index.json"
+  ],
+  "evidence": [
+    "I:/26.2 to 26.3 Projects/tarkovcraft_core-neoforge-2.10.1+26.2-26.3/dependency-detection.json",
+    "I:/26.2 to 26.3 Projects/tarkovcraft_core-neoforge-2.10.1+26.2-26.3/dependency-resolution.json",
+    "I:/26.2 to 26.3 Projects/tarkovcraft_core-neoforge-2.10.1+26.2-26.3/DEPENDENCIES-26.3.md",
+    "I:/26.2 to 26.3 Projects/tarkovcraft_core-neoforge-2.10.1+26.2-26.3/rb-dependencies.gradle",
+    "C:/GokuCodexAI/Data/Mod_Dependencies/minecraft-26.3/3WjjSM5O/8KSj2YNF/version.json",
+    "https://api.modrinth.com/v2/project/configuration",
+    "https://api.modrinth.com/v2/version/8KSj2YNF",
+    "https://github.com/Toma1O6/Configuration"
+  ],
+  "tests": [
+    "C:/GokuCodexAI/projects/RB26.2to26.3Converter/scripts/test_dependencies.py",
+    "scripts/Test-PromotedCases.ps1"
+  ]
+}

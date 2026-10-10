@@ -3,6 +3,8 @@
   "source_minecraft": "26.2",
   "target_minecraft": "26.3",
   "java_major": 25,
+  "codex_model": "gpt-6-luna",
+  "codex_reasoning_effort": "medium",
   "primer": "knowledge/PrimerChangeIndex-26.2-to-26.3.json",
   "shared_primer_directory": "Data/NeoForge_Primers/26.3",
   "solved_cases_directory": "Data/Solved_Problems/rb-26.2-to-26.3",

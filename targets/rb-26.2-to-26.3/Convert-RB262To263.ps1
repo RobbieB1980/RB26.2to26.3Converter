@@ -1,8 +1,8 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param(
     [Parameter(Mandatory)][string]$InputPath,
     [string]$OutputPath = '',
-    [string]$NeoVersion = 'neoforge-26.3.0.7-beta',
+    [string]$NeoVersion = 'neoforge-26.3.0.22-beta',
     [string]$GeckoLibVersion = 'geckolib-neoforge-26.3-5.5.7',
     [switch]$OfflineDependencies
 )

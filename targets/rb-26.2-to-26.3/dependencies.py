@@ -119,6 +119,13 @@ def version_allowed(version, constraint):
     if not constraint or constraint=='*':
         return True
     def number(v):
+        # Modrinth release versions may carry the target suffix +26.3;
+        # compare the numeric release component while retaining the full
+        # version in evidence. Reject other suffixes instead of guessing.
+        parts=v.split('+',1)
+        v=parts[0]
+        if len(parts)==2 and parts[1]!='26.3':
+            raise ValueError('Dependency range needs manual review: '+constraint)
         if not re.fullmatch(r'\d+(?:\.\d+)*',v):
             raise ValueError('Dependency range needs manual review: '+constraint)
         parts=tuple(map(int,v.split('.')))
@@ -306,8 +313,92 @@ def wire(project, records, results):
     build.write_text(text,encoding='utf-8')
 
 
+_TOML_ASSIGNMENT = re.compile(
+    r"(?ms)^(?P<indent>[ \t]*)(?P<key>[A-Za-z0-9_-]+)\s*=\s*"
+    r'(?P<value>""".*?"""|\'\'\'.*?\'\'\'|[^\r\n]*)'
+)
+
+
+def _array_blocks(text):
+    return re.findall(
+        r'(?ms)^\[\[[^\]\r\n]+\]\][^\r\n]*(?:\r?\n|$).*?'
+        r'(?=^\[\[|^\[[^\[]|\Z)', text
+    )
+
+
+def _block(text, name):
+    match = re.search(
+        r'(?ms)^\[\[' + re.escape(name) + r'\]\][^\r\n]*(?:\r?\n|$).*?'
+        r'(?=^\[\[|^\[[^\[]|\Z)', text
+    )
+    return match.group(0) if match else ''
+
+
+def _assignments(text):
+    return {m.group('key'): m.group(0).rstrip() for m in _TOML_ASSIGNMENT.finditer(text)}
+
+
+def _merge_assignments(section, original, excluded=()):
+    """Replace generated fields with exact source assignments and append custom fields."""
+    fields = _assignments(original)
+    for key, assignment in fields.items():
+        if key in excluded:
+            continue
+        match = next((m for m in _TOML_ASSIGNMENT.finditer(section) if m.group('key') == key), None)
+        if match:
+            section = section[:match.start()] + assignment + section[match.end():]
+        else:
+            section = section.rstrip() + '\n' + assignment + '\n'
+    return section
+
+
+def _metadata_guard(text, label):
+    """Parse metadata and reject shapes the bounded text merge cannot preserve."""
+    try:
+        parsed=metadata(text)
+    except Exception as error:
+        raise ValueError(f'Metadata preservation requires manual review: invalid {label} TOML: {error}') from error
+    mods=parsed.get('mods',[])
+    if len(mods)!=1:
+        raise ValueError('Metadata preservation requires manual review: exactly one [[mods]] block is supported')
+    # A multiline array or inline table would be truncated by the assignment
+    # merge. Refuse before touching the generated template.
+    for match in re.finditer(r'(?m)^[ \t]*[A-Za-z0-9_-]+\s*=\s*(?P<open>[\[{])(?P<rest>[^\r\n]*)',text):
+        rest=match.group('rest').split('#',1)[0].rstrip()
+        close=']' if match.group('open')=='[' else '}'
+        if not rest.endswith(close):
+            raise ValueError('Metadata preservation requires manual review: multiline array or inline table assignment')
+    # Standard tables are outside the supported root/mods/block merge scope.
+    if re.search(r'(?m)^[ \t]*\[[^\[][^\]\r\n]*\][ \t]*(?:#.*)?$',text):
+        raise ValueError('Metadata preservation requires manual review: standard TOML tables are unsupported')
+    return parsed
+
+
+def _source_owned_metadata(data):
+    """Return source-owned values that the merge must preserve exactly."""
+    root={k:v for k,v in data.items() if k not in ('modLoader','loaderVersion','mods','dependencies')}
+    mod={k:v for k,v in data['mods'][0].items() if k not in ('modId','version')}
+    dependencies={}
+    for owner,blocks in data.get('dependencies',{}).items():
+        kept=[block for block in blocks if block.get('modId') not in PLATFORM]
+        if kept:
+            dependencies[owner]=kept
+    return root,mod,dependencies
+
+
+def _assert_source_owned_metadata(source_data, output_data):
+    expected=_source_owned_metadata(source_data)
+    actual=_source_owned_metadata(output_data)
+    if expected!=actual:
+        raise ValueError('Metadata preservation requires manual review: source-owned metadata did not survive structurally')
+
+
 def preserve_dependency_metadata(source, project):
-    """Keep original non-platform dependency declarations through JAR scaffolding."""
+    """Keep source mod metadata and non-platform dependencies through JAR scaffolding.
+
+    Target-owned loader/version pins remain generated. Source-owned presentation,
+    custom fields, mixins, access transformers, and dependency blocks are retained.
+    """
     if not Path(source).is_file():
         return
     with zipfile.ZipFile(source) as z:
@@ -315,12 +406,49 @@ def preserve_dependency_metadata(source, project):
         if not name:
             return
         original=z.read(name).decode('utf-8-sig')
+    original_data=_metadata_guard(original,'source')
     target=Path(project)/'src/main/templates/META-INF/neoforge.mods.toml'
     if not target.exists():
         target=Path(project)/'src/main/resources/META-INF/neoforge.mods.toml'
     if not target.exists():
         return
     text=target.read_text(encoding='utf-8-sig')
+    _metadata_guard(text,'generated target')
+    original_root=original[:re.search(r'(?m)^\[\[mods\]\]', original).start()] if re.search(r'(?m)^\[\[mods\]\]', original) else ''
+    target_mod=_block(text,'mods')
+    original_mod=_block(original,'mods')
+    if target_mod and original_mod:
+        # Replace the generated mods block while retaining target-owned identity
+        # and version placeholders.
+        merged_mod=_merge_assignments(target_mod, original_mod, excluded=('modId','version'))
+        text=text.replace(target_mod, merged_mod, 1)
+    target_root=text[:re.search(r'(?m)^\[\[mods\]\]', text).start()] if re.search(r'(?m)^\[\[mods\]\]', text) else text
+    if original_root:
+        target_root=_merge_assignments(target_root, original_root, excluded=('modLoader','loaderVersion'))
+        mods_pos=re.search(r'(?m)^\[\[mods\]\]', text)
+        if mods_pos:
+            text=target_root.rstrip()+'\n\n'+text[mods_pos.start():]
+    source_blocks=[]
+    source_headers=set()
+    for block in _array_blocks(original):
+        header=re.match(r'(?m)^\[\[([^\]]+)\]\]',block)
+        if not header or header.group(1) in ('mods',) or header.group(1).startswith('dependencies.'):
+            continue
+        source_blocks.append(block.strip())
+        source_headers.add(header.group(1))
+    # Source-owned array tables are authoritative. Remove generated copies by
+    # semantic table name first, so comments and formatting cannot create a
+    # duplicate mixin or access-transformer registration.
+    if source_headers:
+        headers='|'.join(re.escape(header) for header in sorted(source_headers))
+        target_pattern=(r'(?ms)^\[\[(?:'+headers+r')\]\][^\r\n]*(?:\r?\n|$).*?'
+                        r'(?=^\[\[|^\[[^\[]|\Z)')
+        text=re.sub(target_pattern,'',text)
+    extra_blocks=source_blocks
+    if extra_blocks:
+        insertion=re.search(r'(?m)^\[\[dependencies\.',text)
+        addition='\n\n'.join(extra_blocks)+'\n\n'
+        text=(text[:insertion.start()].rstrip()+'\n\n'+addition+text[insertion.start():]) if insertion else text.rstrip()+'\n\n'+addition
     pattern=r'(?ms)^\[\[dependencies\.[^\r\n]+\]\].*?(?=^\[|\Z)'
     def modid(block):
         parsed=metadata(block)
@@ -328,7 +456,13 @@ def preserve_dependency_metadata(source, project):
     original_blocks=[b[0] for b in re.finditer(pattern,original) if modid(b[0]) not in PLATFORM]
     ids={modid(b) for b in original_blocks}
     text=re.sub(pattern,lambda m:'' if modid(m[0]) in ids else m[0],text)
-    target.write_text(text.rstrip()+'\n\n'+'\n'.join(original_blocks)+'\n',encoding='utf-8')
+    output=text.rstrip()+'\n\n'+'\n'.join(original_blocks)+'\n'
+    try:
+        output_data=metadata(output)
+    except Exception as error:
+        raise ValueError(f'Metadata preservation requires manual review: generated TOML is invalid: {error}') from error
+    _assert_source_owned_metadata(original_data,output_data)
+    target.write_text(output,encoding='utf-8')
 
 
 def scan_api(project, rules=None):

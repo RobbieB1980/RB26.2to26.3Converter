@@ -1,0 +1,26 @@
+{
+  "id": "door-piston-reaction-263022",
+  "source_minecraft": "26.2",
+  "target_minecraft": "26.3",
+  "neo_version": "26.3.0.22-beta",
+  "failure_pattern": "PushReaction\\.DESTROY",
+  "status": "build-verified",
+  "diagnosis": "Door constructors use the removed DESTROY piston reaction.",
+  "repair": "For imported Minecraft DoorBlock subclasses, replace pushReaction(PushReaction.DESTROY) with POPPED. Exact 26.3.0.22-beta PistonStructureResolver places POPPED blocks on toDestroy. Preserve all other block properties.",
+  "validation": "Robmod: Java 25 full build on 26.3.0.22-beta. PChaosKit: Java 25 full build on 26.3.0.7-beta, followed by user-confirmed gameplay on 26.3.0.22-beta. Rule-specific regression fixtures apply where automated.",
+  "runtime": "user-reported-pass",
+  "runtime_scope": "User reported successful in-game operation; individual features were not separately enumerated.",
+  "automatic_patch_eligible": true,
+  "implementation": "lib/ast/Known263Apis.java: doors",
+  "scope": "Exact 26.2 -> 26.3 target pin. Evidence match is guidance; automatic changes are limited to guarded converter rules. Never overlay another mod source wholesale.",
+  "evidence": [
+    "build-history/build-20260926T100245-ddce40d852bd4ff181bb357bd2af017f/case.json",
+    "build-history/build-20260926T100245-ddce40d852bd4ff181bb357bd2af017f/runtime-confirmation.json",
+    "build-history/build-20260926T100245-ddce40d852bd4ff181bb357bd2af017f/repair-result.json"
+  ],
+  "tests": [
+    "scripts/Test-PromotedCases.ps1",
+    "scripts/Test-Known263Apis.ps1",
+    "scripts/Test-Known263Data.ps1"
+  ]
+}
